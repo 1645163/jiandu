@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>民生实事工作进展资料</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .detail-header { text-align: center; padding: 24px 0; border-bottom: 1px solid #e9ecef; }
+        .detail-title { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        .detail-meta { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; margin-top: 16px; color: #6c757d; font-size: 14px; }
+        .detail-meta span { white-space: nowrap; }
+        .preview-toolbar { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #f8f9fa; border-radius: 8px 8px 0 0; flex-wrap: wrap; }
+        .preview-toolbar .btn-download { margin-left: auto; }
+        .preview-toolbar .page-info { font-size: 13px; color: #6c757d; }
+        .preview-toolbar .zoom-controls { display: flex; align-items: center; gap: 4px; }
+        .preview-toolbar .zoom-controls button { width: 32px; height: 28px; padding: 0; font-size: 14px; }
+        .preview-container { border: 1px solid #dee2e6; border-radius: 0 0 8px 8px; overflow: auto; height: 82vh; min-height: 600px; background: #fff; }
+        .preview-zoom-wrapper { transform-origin: 0 0; width: 100%; height: 82vh; min-height: 600px; }
+        .preview-pdf { padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+        .preview-pdf canvas { max-width: 100%; height: auto; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+        .preview-iframe { width: 100%; height: 100%; min-height: 500px; border: none; display: block; }
+        .preview-html { padding: 24px; max-width: none; margin: 0 auto; width: 100%; min-height: 400px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">市人大常委会监督协调处 <span class="navbar-version">V1.0</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="index.html">监督议题</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="pishi.html">批示督办</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link active" href="minsheng.html">民生实事</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meiyue.html">每月工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meizhou.html">每周工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="falv.html">法律法规</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">工作计划</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link text-white" href="minsheng.html"><i class="fa fa-arrow-left"></i> 返回民生实事</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4 mb-5 pb-4">
+        <div id="loading" class="text-center py-5">加载中...</div>
+        <div id="content" style="display: none;">
+            <div class="detail-header">
+                <h1 class="detail-title" id="doc-title"></h1>
+                <div class="detail-meta" id="doc-meta"></div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="preview-toolbar">
+                    <span class="page-info" id="page-info"></span>
+                    <div class="zoom-controls">
+                        <button class="btn btn-sm btn-outline-secondary" id="zoom-out">-</button>
+                        <span id="zoom-value">100%</span>
+                        <button class="btn btn-sm btn-outline-secondary" id="zoom-in">+</button>
+                    </div>
+                    <button class="btn btn-primary btn-sm btn-download" id="btn-download"><i class="fa fa-download"></i> 下载</button>
+                </div>
+                <div class="preview-container" id="preview-container">
+                    <div id="zoom-wrapper" class="preview-zoom-wrapper">
+                        <div id="preview-pdf" class="preview-pdf" style="display: none;"></div>
+                        <iframe id="preview-iframe" class="preview-iframe" style="display: none;"></iframe>
+                        <div id="preview-html" class="preview-html" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="error" class="text-center py-5 text-danger" style="display: none;">加载失败，记录不存在</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var id = params.get('id');
+            var doc = null;
+            var zoom = 100;
+            var token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+            function apiFetch(url, options) {
+                options = options || {};
+                var headers = options.headers || {};
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                options.headers = headers;
+                return fetch(url, options);
+            }
+
+            function loadDoc() {
+                if (!id) { showError(); return; }
+                fetch('/api/minsheng/progress/' + id).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0 && result.data) {
+                        doc = result.data;
+                        renderHeader();
+                        loadPreview();
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('content').style.display = 'block';
+                    } else showError();
+                }).catch(showError);
+            }
+
+            function showError() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }
+
+            function renderHeader() {
+                var rawDate = doc.uploadDate || (doc.createdAt ? doc.createdAt.slice(0, 10) : '');
+                var dateStr = rawDate ? rawDate.slice(0, 7) : '';
+                var title = (doc.title || doc.originalName || '未命名');
+                document.getElementById('doc-title').textContent = (dateStr ? dateStr + ' ' : '') + title;
+                var meta = [];
+                if (doc.department) meta.push('监督部门: ' + doc.department);
+                if (doc.createdAt) meta.push('上传时间: ' + doc.createdAt.slice(0, 10));
+                document.getElementById('doc-meta').innerHTML = meta.map(function (m) { return '<span>' + m + '</span>'; }).join('');
+            }
+
+            function applyDocumentZoom() {
+                var wrapper = document.getElementById('zoom-wrapper');
+                var iframe = document.getElementById('preview-iframe');
+                var htmlDiv = document.getElementById('preview-html');
+                var isWord = doc && (doc.fileType === 'doc' || doc.fileType === 'docx');
+                if (isWord && iframe && iframe.style.display !== 'none') {
+                    try {
+                        var d = iframe.contentDocument;
+                        if (d && d.body) {
+                            d.body.style.zoom = zoom / 100;
+                        } else {
+                            if (wrapper) wrapper.style.transform = 'scale(' + (zoom / 100) + ')';
+                        }
+                    } catch (e) {
+                        if (wrapper) wrapper.style.transform = 'scale(' + (zoom / 100) + ')';
+                    }
+                } else if (htmlDiv && htmlDiv.style.display !== 'none') {
+                    htmlDiv.style.zoom = zoom / 100;
+                } else if (wrapper) {
+                    wrapper.style.transform = 'scale(' + (zoom / 100) + ')';
+                }
+            }
+
+            function loadPreview() {
+                var iframe = document.getElementById('preview-iframe');
+                var htmlDiv = document.getElementById('preview-html');
+                var pdfDiv = document.getElementById('preview-pdf');
+                var pageInfo = document.getElementById('page-info');
+                applyDocumentZoom();
+                if (doc.fileType === 'pdf') {
+                    iframe.style.display = 'none';
+                    htmlDiv.style.display = 'none';
+                    pdfDiv.style.display = 'flex';
+                    pdfDiv.innerHTML = '<p class="text-muted">加载 PDF 中...</p>';
+                    if (typeof pdfjsLib === 'undefined') {
+                        pdfDiv.innerHTML = '<p class="text-danger">PDF 预览库加载失败，请<a href="/api/minsheng/progress/download/' + id + '">下载</a>后查看</p>';
+                        pageInfo.textContent = 'PDF 文档（预览失败）';
+                        return;
+                    }
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    apiFetch('/api/minsheng/progress/file/' + id).then(function (r) { return r.arrayBuffer(); }).then(function (arrayBuffer) {
+                        return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    }).then(function (pdf) {
+                        var numPages = pdf.numPages;
+                        pageInfo.textContent = '共 ' + numPages + ' 页';
+                        pdfDiv.innerHTML = '';
+                        var baseScale = 1.5;
+                        var renderNext = function (pageNum) {
+                            if (pageNum > numPages) return Promise.resolve();
+                            return pdf.getPage(pageNum).then(function (page) {
+                                var vp = page.getViewport({ scale: baseScale });
+                                var canvas = document.createElement('canvas');
+                                var ctx = canvas.getContext('2d');
+                                canvas.height = vp.height;
+                                canvas.width = vp.width;
+                                canvas.style.maxWidth = '100%';
+                                return page.render({ canvasContext: ctx, viewport: vp }).promise.then(function () {
+                                    pdfDiv.appendChild(canvas);
+                                    return renderNext(pageNum + 1);
+                                });
+                            });
+                        };
+                        return renderNext(1);
+                    }).catch(function (err) {
+                        pdfDiv.innerHTML = '<p class="text-danger">预览失败，请<a href="/api/minsheng/progress/download/' + id + '">下载</a>后查看</p>';
+                        pageInfo.textContent = 'PDF 文档（预览失败）';
+                    });
+                } else {
+                    pdfDiv.style.display = 'none';
+                    iframe.onload = function () { applyDocumentZoom(); };
+                    fetch('/api/minsheng/progress/preview/' + id).then(function (r) { return r.text(); }).then(function (html) {
+                        iframe.srcdoc = html;
+                        iframe.style.display = 'block';
+                        htmlDiv.style.display = 'none';
+                        pageInfo.textContent = 'Word 文档预览';
+                    }).catch(function () {
+                        htmlDiv.innerHTML = '<p class="text-muted">预览失败，请<a href="/api/minsheng/progress/download/' + id + '" target="_blank">下载</a>后查看</p>';
+                        htmlDiv.style.display = 'block';
+                        iframe.style.display = 'none';
+                        pageInfo.textContent = 'Word 文档（预览失败）';
+                    });
+                }
+            }
+
+            document.getElementById('btn-download').addEventListener('click', function () {
+                window.location.href = '/api/minsheng/progress/download/' + id;
+            });
+
+            document.getElementById('zoom-in').addEventListener('click', function () {
+                zoom = Math.min(150, zoom + 10);
+                document.getElementById('zoom-value').textContent = zoom + '%';
+                applyDocumentZoom();
+            });
+
+            document.getElementById('zoom-out').addEventListener('click', function () {
+                zoom = Math.max(50, zoom - 10);
+                document.getElementById('zoom-value').textContent = zoom + '%';
+                applyDocumentZoom();
+            });
+
+            loadDoc();
+        })();
+    </script>
+</body>
+</html>

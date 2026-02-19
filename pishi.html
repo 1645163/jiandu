@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>批示督办</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-size: 14px; line-height: 1.5; }
+        .navbar { background: linear-gradient(135deg, #165DFF 0%, #0d3ba8 100%); padding: 0.5rem 1rem; }
+        .card { border-radius: 8px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }
+        /* 图表容器 - 铺满页面宽度 */
+        .chart-container {
+            height: 220px;
+            width: 100%;
+            margin: 20px 0;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .filter-row { font-size: 14px; }
+        .operation-btn { margin: 5px; }
+        .login-modal .modal-content { border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); }
+        .login-modal .modal-header { background-color: #165DFF; color: white; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .table-header-blue { background-color: #165DFF !important; color: white !important; border-color: #1452e0 !important; }
+        .table-header-blue th { border-color: #1452e0 !important; }
+        .toast-notice {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 300px; padding: 12px 20px;
+            background: rgba(0,0,0,0.8); color: white; border-radius: 4px;
+            z-index: 9999; opacity: 0; transition: opacity 0.3s ease; text-align: center;
+        }
+        .toast-notice.show { opacity: 1; }
+        .btn-group-inline { display: inline-flex; align-items: flex-start; gap: 5px; flex-wrap: wrap; }
+        .table-responsive { min-height: 200px; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -15px; padding: 0 15px; }
+        .table th, .table td { padding: 0.75rem 0.5rem; font-size: 13px; }
+        .table th { white-space: nowrap; }
+        .table td { white-space: normal; word-break: break-all; overflow-wrap: break-word; }
+        .btn { min-height: 44px; min-width: 44px; padding: 0.5rem 1rem; font-size: 14px; }
+        .btn-sm { min-height: 36px; min-width: 36px; padding: 0.25rem 0.5rem; }
+        .form-control, .form-select { min-height: 44px; font-size: 14px; width: 100%; }
+        .navbar-brand { font-size: 16px; }
+        .nav-link { padding: 0.5rem 0.75rem; }
+        .nav-module-link { color: rgba(255,255,255,0.9) !important; text-decoration: none; padding: 0.5rem 0.75rem; }
+        .nav-module-link:hover { color: #fff !important; }
+        @media (min-width: 576px) {
+            .chart-container { height: 240px; padding: 24px 32px; }
+            .table th, .table td { font-size: 14px; padding: 0.75rem; }
+            .toast-notice { left: auto; right: 20px; transform: none; max-width: 350px; }
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 260px; }
+            .table-responsive { margin: 0; padding: 0; }
+        }
+        @media (min-width: 992px) { .navbar-brand { font-size: 18px; } }
+        .modal-dialog { margin: 1rem; max-width: 90%; }
+        @media (min-width: 576px) { .modal-sm { max-width: 400px; } .modal-lg { max-width: 900px; } }
+        .navbar-nav { align-items: center; }
+        .navbar-nav .btn { margin: 5px 0 !important; width: 100%; }
+        @media (min-width: 992px) { .navbar-nav .btn { width: auto; margin: 0 0 0 10px !important; } }
+        @media (max-width: 767px) {
+            .btn-group-inline { flex-direction: column; width: 100%; }
+            .input-group { flex-direction: column; gap: 10px; }
+            .input-group .btn { width: 100%; }
+            .card-header.d-flex { flex-direction: column; align-items: flex-start !important; gap: 10px; }
+            .card-header .d-flex > div { width: 100%; }
+        }
+        .chart-data-label { font-family: 'Microsoft YaHei'; font-weight: bold; font-size: 14px; color: #fff; }
+        .sort-btn { background: transparent; border: none; color: #000; cursor: pointer; font-size: 14px; margin-left: 4px; padding: 0 2px; }
+        .sort-btn:hover { opacity: 0.85; }
+        @media (max-width: 767px) {
+            .filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        }
+        .progress-table { border: 1px solid #dee2e6; border-radius: 6px; }
+        .progress-table thead th { background: #f8f9fa; font-weight: 600; }
+        .progress-table thead th.progress-date-col,
+        .progress-table thead th.progress-name-col { color: #6c757d; }
+        .progress-table .progress-date-col { min-width: 140px; width: 140px; padding-right: 24px; white-space: nowrap; color: #6c757d; }
+        .progress-table .progress-name-col { min-width: 200px; padding-left: 24px; padding-right: 24px; }
+        .progress-table .progress-op-col { white-space: nowrap; text-align: right; }
+        .progress-table .progress-op-col .btn-group { flex-wrap: nowrap; display: inline-flex; }
+        .form-control-date { min-height: 48px; padding: 12px 16px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">市人大常委会监督协调处 <span class="navbar-version">V1.0</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="index.html">监督议题</a></li>
+                    <li class="nav-item"><a class="nav-link active text-white" href="pishi.html">批示督办</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="minsheng.html">民生实事</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meiyue.html">每月工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meizhou.html">每周工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="falv.html">法律法规</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">工作计划</a></li>
+                </ul>
+                <div class="navbar-nav ms-auto">
+                    <span class="nav-link text-white" id="user-role">当前身份：<b>游客（未登录）</b></span>
+                    <button class="btn btn-outline-light ms-2" id="admin-mgmt-btn" style="display: none;"><i class="fa fa-users"></i> 管理员管理</button>
+                    <button class="btn btn-outline-light ms-2" id="login-btn">管理员登录</button>
+                    <button class="btn btn-outline-light ms-2" id="logout-btn" style="display: none;">退出登录</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5 pb-4">
+        <!-- 数据概览（点击标题可折叠） -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 overview-title-toggle" style="cursor: pointer; user-select: none;"><i class="fa fa-chevron-down overview-chevron me-1"></i>数据概览（领导和责任部门承办批示数量）</h5>
+                <div>
+                    <label for="filter-qishu" class="me-2">筛选期数：</label>
+                    <select class="form-select d-inline-block w-auto" id="filter-qishu">
+                        <option value="">全部期数</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body" id="pishi-overview-card-body">
+                <div class="filter-row mb-2">
+                    <label class="me-1">期数区间：</label>
+                    <select class="form-select form-select-sm d-inline-block w-auto me-2" id="filter-qishu-start">
+                        <option value="">全部</option>
+                    </select>
+                    <span class="me-2 align-self-center">至</span>
+                    <select class="form-select form-select-sm d-inline-block w-auto me-2" id="filter-qishu-end">
+                        <option value="">全部</option>
+                    </select>
+                    <label for="filter-leaderDept" class="me-1">领导与部门：</label>
+                    <select class="form-select form-select-sm d-inline-block w-auto me-2" id="filter-leaderDept"><option value="">全部</option></select>
+                    <label for="filter-completeStatus" class="me-1">完成情况：</label>
+                    <select class="form-select form-select-sm d-inline-block w-auto me-2" id="filter-completeStatus">
+                        <option value="">全部</option>
+                        <option value="推进中">推进中</option>
+                        <option value="已完成">已完成</option>
+                    </select>
+                    <button class="btn btn-primary btn-sm" id="btn-apply-filter"><i class="fa fa-search"></i> 筛选</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="stats-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 批示办理情况报告（所有人可见，点击标题可折叠） -->
+        <div class="card" id="pishi-report-area">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 pishi-report-title-toggle" style="cursor: pointer; user-select: none;"><i class="fa fa-chevron-down pishi-report-chevron me-1"></i>批示办理情况报告</h5>
+                <button class="btn btn-sm btn-primary" id="pishi-report-upload-btn" style="display: none;"><i class="fa fa-upload"></i> 上传报告</button>
+            </div>
+            <div class="card-body" id="pishi-report-card-body">
+                <table class="table table-sm progress-table mb-0">
+                    <thead><tr><th class="progress-date-col">日期</th><th class="progress-name-col">文件名</th><th class="progress-op-col">操作</th></tr></thead>
+                    <tbody id="pishi-report-list"></tbody>
+                </table>
+                <div id="pishi-report-empty" class="text-muted text-center py-3">暂无报告</div>
+            </div>
+        </div>
+
+        <!-- 操作区域（仅管理员可见） -->
+        <div class="card" id="operation-area" style="display: none;">
+            <div class="card-header"><h5 class="mb-0">数据操作</h5></div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <div class="input-group w-auto flex-grow-1">
+                        <input type="file" class="form-control" id="excel-upload" accept=".xlsx,.xls">
+                        <button class="btn btn-primary" id="btn-upload-excel"><i class="fa fa-upload"></i> 上传Excel</button>
+                        <button type="button" class="btn btn-outline-secondary" id="download-pishi-template-btn"><i class="fa fa-download"></i> 下载模板</button>
+                    </div>
+                    <button class="btn btn-success operation-btn" id="btn-add"><i class="fa fa-plus"></i> 新增批示</button>
+                    <button class="btn btn-danger operation-btn" id="btn-batch-del"><i class="fa fa-trash"></i> 批量删除</button>
+                    <div class="btn-group-inline">
+                        <button class="btn btn-secondary operation-btn" id="pishi-backup-btn"><i class="fa fa-database"></i> 备份数据</button>
+                        <button class="btn btn-dark operation-btn" id="pishi-restore-btn"><i class="fa fa-recycle"></i> 数据恢复</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 批示列表 -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="mb-0">常委会主要领导批示意见办理统计</h5>
+                <div class="input-group w-auto" style="min-width: 180px;">
+                    <span class="input-group-text"><i class="fa fa-search"></i></span>
+                    <input type="text" class="form-control form-control-sm" id="pishi-search-input" placeholder="模糊搜索">
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0" id="pishi-table">
+                        <thead class="table-header-blue">
+                            <tr>
+                                <th id="checkbox-th" style="display: none; width: 40px;"><input type="checkbox" id="select-all"></th>
+                                <th style="min-width: 70px;">期数 <button class="sort-btn" id="sort-qishu-btn" title="按期数排序"><i class="fa fa-sort"></i></button></th>
+                                <th style="min-width: 90px;">来文单位 <button class="sort-btn" id="sort-laiwenUnit-btn" title="按来文单位排序"><i class="fa fa-sort"></i></button></th>
+                                <th style="min-width: 90px;">文号</th>
+                                <th style="min-width: 140px;">批示内容</th>
+                                <th style="min-width: 90px;">批示日期 <button class="sort-btn" id="sort-pishiDate-btn" title="按批示日期排序"><i class="fa fa-sort"></i></button></th>
+                                <th style="min-width: 120px;">领导和责任部门 <button class="sort-btn" id="sort-leaderDept-btn" title="按领导和责任部门排序"><i class="fa fa-sort"></i></button></th>
+                                <th style="min-width: 80px;">类别 <button class="sort-btn" id="sort-category-btn" title="按类别排序"><i class="fa fa-sort"></i></button></th>
+                                <th style="min-width: 120px;">落实举措</th>
+                                <th style="min-width: 90px;">完成情况 <button class="sort-btn" id="sort-completeStatus-btn" title="按完成情况排序"><i class="fa fa-sort"></i></button></th>
+                                <th id="operation-th" style="min-width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录模态框 -->
+    <div class="modal fade login-modal" id="login-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">管理员登录</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="login-form">
+                        <div class="mb-3">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="username" placeholder="请输入管理员用户名" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember-me" checked>
+                            <label class="form-check-label" for="remember-me">7日内免登陆</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary" id="do-login-btn">登录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/编辑批示模态框 -->
+    <div class="modal fade" id="pishi-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pishi-modal-title">新增批示</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="pishi-form">
+                        <input type="hidden" name="id">
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">期数</label>
+                                <input type="text" class="form-control" name="qishu" placeholder="期数">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">来文单位</label>
+                                <input type="text" class="form-control" name="laiwenUnit" placeholder="来文单位">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">文号</label>
+                                <input type="text" class="form-control" name="wenhao" placeholder="文号">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label class="form-label">批示内容</label>
+                                <textarea class="form-control" name="pishiContent" rows="2" placeholder="批示内容"></textarea>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">批示日期</label>
+                                <input type="date" class="form-control" name="pishiDate" placeholder="点击选择日期">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">领导和责任部门</label>
+                                <input type="text" class="form-control" name="leaderDept" placeholder="领导和责任部门">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">类别</label>
+                                <select class="form-select" name="category">
+                                    <option value="">请选择</option>
+                                    <option value="工作落实">工作落实</option>
+                                    <option value="文件阅知">文件阅知</option>
+                                    <option value="事项审批">事项审批</option>
+                                    <option value="往期结转">往期结转</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-8">
+                                <label class="form-label">落实举措</label>
+                                <textarea class="form-control" name="luoshiCuoshi" rows="2" placeholder="落实举措"></textarea>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">完成情况</label>
+                                <select class="form-select" name="completeStatus">
+                                    <option value="推进中">推进中</option>
+                                    <option value="已完成">已完成</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="pishi-save-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批示办理情况报告上传模态框 -->
+    <div class="modal fade" id="pishi-report-upload-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">上传批示办理情况报告</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="pishi-report-upload-form">
+                        <div class="mb-3">
+                            <label class="form-label">上传日期（可选，点击选择）</label>
+                            <input type="date" class="form-control form-control-date" name="uploadDate" id="pishi-report-upload-date">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">资料标题</label>
+                            <input type="text" class="form-control" name="title" placeholder="请输入资料标题（可选，默认使用文件名）">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">选择文件（PDF、Word）</label>
+                            <input type="file" class="form-control" id="pishi-report-upload-file" accept=".pdf,.doc,.docx" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="pishi-report-upload-submit"><i class="fa fa-upload"></i> 上传</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批示办理情况报告编辑模态框 -->
+    <div class="modal fade" id="pishi-report-edit-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑报告</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="pishi-report-edit-form">
+                        <input type="hidden" id="pishi-report-edit-id">
+                        <div class="mb-3">
+                            <label class="form-label">上传日期</label>
+                            <input type="date" class="form-control form-control-date" id="pishi-report-edit-date">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">资料标题</label>
+                            <input type="text" class="form-control" id="pishi-report-edit-title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">重新上传文件（可选，留空则不替换）</label>
+                            <input type="file" class="form-control" id="pishi-report-edit-file" accept=".pdf,.doc,.docx">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="pishi-report-edit-submit"><i class="fa fa-save"></i> 保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理员管理模态框（同 index，超级管理员可见） -->
+    <div class="modal fade" id="admin-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">管理员管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <button class="btn btn-success btn-sm" id="admin-add-btn"><i class="fa fa-plus"></i> 新增管理员</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead><tr><th>用户名</th><th>角色</th><th>操作</th></tr></thead>
+                            <tbody id="admin-list-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="admin-form-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="admin-form-title">新增管理员</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="admin-form">
+                        <input type="hidden" name="id">
+                        <div class="mb-2"><label class="form-label">用户名</label><input type="text" class="form-control" name="username" required></div>
+                        <div class="mb-2"><label class="form-label">密码</label><input type="password" class="form-control" name="password" placeholder="留空则不修改"></div>
+                        <div class="mb-2"><label class="form-label">角色</label>
+                            <select class="form-select" name="role">
+                                <option value="admin">普通管理员</option>
+                                <option value="super_admin">超级管理员</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="admin-save-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据恢复模态框 -->
+    <div class="modal fade" id="pishi-restore-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">数据恢复</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">选择备份文件（JSON 格式）</label>
+                        <input type="file" class="form-control" id="pishi-restore-file" accept=".json">
+                    </div>
+                    <p class="text-muted small mb-0">恢复后将覆盖当前全部批示数据。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="pishi-do-restore-btn">确认恢复</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-notice" id="toast-notice"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0" defer></script>
+    <script>
+        (function () {
+            var DOM = {
+                userRole: document.getElementById('user-role'),
+                loginBtn: document.getElementById('login-btn'),
+                logoutBtn: document.getElementById('logout-btn'),
+                operationArea: document.getElementById('operation-area'),
+                tableBody: document.getElementById('table-body'),
+                checkboxTh: document.getElementById('checkbox-th'),
+                operationTh: document.getElementById('operation-th'),
+                selectAll: document.getElementById('select-all'),
+                filterQishu: document.getElementById('filter-qishu'),
+                filterQishuStart: document.getElementById('filter-qishu-start'),
+                filterQishuEnd: document.getElementById('filter-qishu-end'),
+                filterLeaderDept: document.getElementById('filter-leaderDept'),
+                filterCompleteStatus: document.getElementById('filter-completeStatus'),
+                searchInput: document.getElementById('pishi-search-input'),
+                btnApplyFilter: document.getElementById('btn-apply-filter'),
+                excelUpload: document.getElementById('excel-upload'),
+                btnUploadExcel: document.getElementById('btn-upload-excel'),
+                btnAdd: document.getElementById('btn-add'),
+                btnBatchDel: document.getElementById('btn-batch-del'),
+                pishiForm: document.getElementById('pishi-form'),
+                pishiModalTitle: document.getElementById('pishi-modal-title'),
+                pishiSaveBtn: document.getElementById('pishi-save-btn'),
+                toastNotice: document.getElementById('toast-notice'),
+                adminMgmtBtn: document.getElementById('admin-mgmt-btn'),
+                adminListBody: document.getElementById('admin-list-body'),
+                adminAddBtn: document.getElementById('admin-add-btn'),
+                adminForm: document.getElementById('admin-form'),
+                adminFormTitle: document.getElementById('admin-form-title'),
+                adminSaveBtn: document.getElementById('admin-save-btn'),
+                pishiBackupBtn: document.getElementById('pishi-backup-btn'),
+                pishiRestoreBtn: document.getElementById('pishi-restore-btn'),
+                pishiRestoreFile: document.getElementById('pishi-restore-file'),
+                pishiDoRestoreBtn: document.getElementById('pishi-do-restore-btn')
+            };
+
+            var isAdmin = false;
+            var currentUserRole = '';
+            var currentUsername = '';
+            var chartInstance = null;
+            var MORANDI_COLORS = [
+                { bg: '#74C69D', border: '#52B788', text: '#fff' },
+                { bg: '#4CC9F0', border: '#4361EE', text: '#fff' },
+                { bg: '#F72585', border: '#7209B7', text: '#fff' },
+                { bg: '#F8961E', border: '#F9844A', text: '#fff' },
+                { bg: '#94A3B8', border: '#64748B', text: '#fff' },
+                { bg: '#06D6A0', border: '#059669', text: '#fff' }
+            ];
+
+            function showToast(msg, duration) {
+                duration = duration || 2000;
+                DOM.toastNotice.textContent = msg;
+                DOM.toastNotice.classList.add('show');
+                setTimeout(function () { DOM.toastNotice.classList.remove('show'); }, duration);
+            }
+
+            function debounce(fn, ms) {
+                var t;
+                return function () { clearTimeout(t); t = setTimeout(function () { fn.apply(this, arguments); }, ms); };
+            }
+            function getToken() {
+                var expiry = localStorage.getItem('tokenExpiry');
+                if (localStorage.getItem('token') && expiry && Date.now() > parseInt(expiry, 10)) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('tokenExpiry');
+                }
+                return localStorage.getItem('token') || sessionStorage.getItem('token');
+            }
+            function setToken(token, rememberMe) {
+                if (rememberMe) {
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('tokenExpiry', String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+                    sessionStorage.removeItem('token');
+                } else {
+                    sessionStorage.setItem('token', token);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('tokenExpiry');
+                }
+            }
+            function clearToken() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('tokenExpiry');
+                sessionStorage.removeItem('token');
+            }
+
+            function apiFetch(url, options) {
+                options = options || {};
+                var token = getToken();
+                var headers = options.headers || {};
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                options.headers = headers;
+                return fetch(url, options).then(function (res) {
+                    if (res.status === 401) {
+                        var hadToken = !!token;
+                        clearToken();
+                        isAdmin = false;
+                        currentUserRole = '';
+                        if (DOM.adminMgmtBtn) DOM.adminMgmtBtn.style.display = 'none';
+                        DOM.userRole.innerHTML = '当前身份：<b>游客（未登录）</b>';
+                        DOM.loginBtn.style.display = '';
+                        DOM.logoutBtn.style.display = 'none';
+                        DOM.operationArea.style.display = 'none';
+                        var uploadBtn = document.getElementById('pishi-report-upload-btn');
+                        if (uploadBtn) uploadBtn.style.display = 'none';
+                        renderPishiReport();
+                        if (hadToken) showToast('您已被强制下线，请重新登录');
+                        throw new Error('UNAUTHORIZED');
+                    }
+                    return res;
+                });
+            }
+
+            var pishiList = [];
+            var pishiReportData = [];
+            var sortConfig = { field: 'qishu', type: 'desc' };
+
+            function loadPishiReport() {
+                return fetch('/api/pishi/report').then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        pishiReportData = result.data || [];
+                        return pishiReportData;
+                    }
+                    return [];
+                }).catch(function () { return []; });
+            }
+
+            function formatDateChinese(s) {
+                if (!s) return '-';
+                var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+                if (m) return m[1] + '年' + parseInt(m[2], 10) + '月' + parseInt(m[3], 10) + '日';
+                var m2 = s.match(/^(\d{4})-(\d{1,2})/);
+                if (m2) return m2[1] + '年' + parseInt(m2[2], 10) + '月';
+                return s;
+            }
+
+            function renderPishiReport() {
+                var listEl = document.getElementById('pishi-report-list');
+                var emptyEl = document.getElementById('pishi-report-empty');
+                if (!listEl) return;
+                var sorted = pishiReportData.slice().sort(function (a, b) {
+                    var da = a.uploadDate || (a.createdAt ? a.createdAt.slice(0, 10) : '');
+                    var db = b.uploadDate || (b.createdAt ? b.createdAt.slice(0, 10) : '');
+                    return (db || '').localeCompare(da || '');
+                });
+                if (sorted.length === 0) {
+                    listEl.innerHTML = '';
+                    if (emptyEl) emptyEl.style.display = 'block';
+                    return;
+                }
+                if (emptyEl) emptyEl.style.display = 'none';
+                var html = '';
+                sorted.forEach(function (p) {
+                    var ext = (p.fileType || 'pdf').toUpperCase();
+                    var rawDate = p.uploadDate || (p.createdAt ? p.createdAt.slice(0, 10) : '');
+                    var dateStr = formatDateChinese(rawDate || '');
+                    var fileName = (p.title || p.originalName || '未命名');
+                    html += '<tr><td class="progress-date-col">' + dateStr + '</td>';
+                    html += '<td class="progress-name-col"><i class="fa fa-file-' + (p.fileType === 'pdf' ? 'pdf' : 'word') + '-o text-danger me-1"></i>' + fileName + ' <span class="badge bg-secondary">' + ext + '</span></td>';
+                    html += '<td class="progress-op-col"><div class="btn-group btn-group-sm">';
+                    html += '<a href="pishi-report-detail.html?id=' + p.id + '" target="_blank" class="btn btn-outline-primary btn-sm"><i class="fa fa-eye"></i> 预览</a>';
+                    if (isAdmin) {
+                        html += '<button class="btn btn-outline-secondary btn-sm pishi-report-edit-btn" data-id="' + p.id + '"><i class="fa fa-edit"></i> 修改</button>';
+                        html += '<button class="btn btn-outline-danger btn-sm pishi-report-del-btn" data-id="' + p.id + '"><i class="fa fa-trash"></i> 删除</button>';
+                    }
+                    html += '<a href="/api/pishi/report/download/' + p.id + '" class="btn btn-outline-info btn-sm" target="_blank"><i class="fa fa-download"></i> 下载</a>';
+                    html += '</div></td></tr>';
+                });
+                listEl.innerHTML = html;
+            }
+
+            function compareQishu(a, b) {
+                var pa = parseQishu(a), pb = parseQishu(b);
+                if (pa.year !== pb.year) return pa.year - pb.year;
+                return pa.period - pb.period;
+            }
+            function applyFilterInMemory() {
+                var list = pishiList;
+                var qishu = (DOM.filterQishu && DOM.filterQishu.value) ? DOM.filterQishu.value.trim() : '';
+                var qishuStart = (DOM.filterQishuStart && DOM.filterQishuStart.value) ? DOM.filterQishuStart.value.trim() : '';
+                var qishuEnd = (DOM.filterQishuEnd && DOM.filterQishuEnd.value) ? DOM.filterQishuEnd.value.trim() : '';
+                var leaderDept = (DOM.filterLeaderDept && DOM.filterLeaderDept.value) ? DOM.filterLeaderDept.value.trim() : '';
+                var completeStatus = (DOM.filterCompleteStatus && DOM.filterCompleteStatus.value) ? DOM.filterCompleteStatus.value.trim() : '';
+                var keyword = (DOM.searchInput && DOM.searchInput.value) ? DOM.searchInput.value.trim().toLowerCase() : '';
+                if (qishu) list = list.filter(function (p) { return formatQishuTwoChar(p.qishu) === formatQishuTwoChar(qishu); });
+                if (qishuStart || qishuEnd) {
+                    list = list.filter(function (p) {
+                        var cmpStart = !qishuStart || compareQishu(p.qishu, qishuStart) >= 0;
+                        var cmpEnd = !qishuEnd || compareQishu(p.qishu, qishuEnd) <= 0;
+                        return cmpStart && cmpEnd;
+                    });
+                }
+                if (leaderDept) list = list.filter(function (p) { return String(p.leaderDept).indexOf(leaderDept) !== -1; });
+                if (completeStatus) list = list.filter(function (p) { return p.completeStatus === completeStatus; });
+                if (keyword) {
+                    list = list.filter(function (p) {
+                        var s = (p.qishu || '') + ' ' + (p.laiwenUnit || '') + ' ' + (p.wenhao || '') + ' ' + (p.pishiContent || '') + ' ' + (p.leaderDept || '') + ' ' + (p.category || '') + ' ' + (p.luoshiCuoshi || '') + ' ' + (p.completeStatus || '');
+                        return s.toLowerCase().indexOf(keyword) !== -1;
+                    });
+                }
+                return list.slice();
+            }
+
+            function sortPishiData(list) {
+                if (!list || !list.length) return list;
+                var field = sortConfig.field;
+                var desc = sortConfig.type === 'desc';
+                var statusOrder = { '推进中': 0, '已完成': 1 };
+                return list.slice().sort(function (a, b) {
+                    var va = a[field];
+                    var vb = b[field];
+                    if (field === 'completeStatus') {
+                        va = statusOrder[va] !== undefined ? statusOrder[va] : -1;
+                        vb = statusOrder[vb] !== undefined ? statusOrder[vb] : -1;
+                        return desc ? vb - va : va - vb;
+                    }
+                    if (field === 'qishu') {
+                        var cmp = compareQishu(va, vb);
+                        if (cmp !== 0) return desc ? -cmp : cmp;
+                        return (b.id || 0) - (a.id || 0);
+                    }
+                    va = (va != null ? String(va) : '');
+                    vb = (vb != null ? String(vb) : '');
+                    var cmp = va.localeCompare(vb, 'zh-CN');
+                    if (cmp !== 0) return desc ? -cmp : cmp;
+                    return (b.id || 0) - (a.id || 0);
+                });
+            }
+
+            function computeStats(list) {
+                var stats = {};
+                (list || []).forEach(function (p) {
+                    var dept = (p.leaderDept || '未分类').trim() || '未分类';
+                    stats[dept] = (stats[dept] || 0) + 1;
+                });
+                return stats;
+            }
+
+            function parseQishu(q) {
+                var m = (q || '').match(/(\d{4})年第(\d{1,2})期/);
+                if (m) return { year: parseInt(m[1], 10), period: parseInt(m[2], 10) };
+                return { year: 0, period: 0 };
+            }
+            function formatQishuTwoChar(q) {
+                var p = parseQishu(q);
+                if (p.year && p.period) return p.year + '年第' + String(p.period).padStart(2, '0') + '期';
+                return q || '';
+            }
+            function updateFilterOptions() {
+                var qishuSet = {};
+                var deptSet = {};
+                pishiList.forEach(function (p) {
+                    if (p.qishu) qishuSet[p.qishu] = true;
+                    if (p.leaderDept) deptSet[p.leaderDept] = true;
+                });
+                var qishuKeys = Object.keys(qishuSet).sort(function (a, b) {
+                    var pa = parseQishu(a), pb = parseQishu(b);
+                    if (pa.year !== pb.year) return pb.year - pa.year;
+                    return pb.period - pa.period;
+                });
+                var qishuOpts = '<option value="">全部期数</option>';
+                qishuKeys.forEach(function (q) {
+                    qishuOpts += '<option value="' + (q.replace(/"/g, '&quot;')) + '">' + formatQishuTwoChar(q) + '</option>';
+                });
+                var deptOpts = '<option value="">全部</option>';
+                Object.keys(deptSet).sort().forEach(function (d) {
+                    deptOpts += '<option value="' + d + '">' + d + '</option>';
+                });
+                if (DOM.filterQishu) {
+                    DOM.filterQishu.innerHTML = qishuOpts;
+                    if (qishuKeys.length > 0) DOM.filterQishu.value = qishuKeys[0];
+                }
+                var qishuRangeOpts = '<option value="">全部</option>';
+                qishuKeys.forEach(function (q) {
+                    qishuRangeOpts += '<option value="' + (q.replace(/"/g, '&quot;')) + '">' + formatQishuTwoChar(q) + '</option>';
+                });
+                if (DOM.filterQishuStart) {
+                    DOM.filterQishuStart.innerHTML = qishuRangeOpts;
+                    DOM.filterQishuStart.value = '';
+                }
+                if (DOM.filterQishuEnd) {
+                    DOM.filterQishuEnd.innerHTML = qishuRangeOpts;
+                    DOM.filterQishuEnd.value = '';
+                }
+                if (DOM.filterLeaderDept) DOM.filterLeaderDept.innerHTML = deptOpts;
+            }
+
+            function renderTable(list) {
+                DOM.checkboxTh.style.display = isAdmin ? '' : 'none';
+                DOM.operationTh.style.display = isAdmin ? '' : 'none';
+                if (!list || list.length === 0) {
+                    DOM.tableBody.innerHTML = '<tr><td colspan="11" class="text-center py-4">暂无数据</td></tr>';
+                    return;
+                }
+                var html = '';
+                list.forEach(function (item) {
+                    var op = isAdmin ? '<td><button class="btn btn-sm btn-outline-primary edit-btn" data-id="' + item.id + '"><i class="fa fa-edit"></i> 编辑</button> ' +
+                        '<button class="btn btn-sm btn-outline-danger del-btn" data-id="' + item.id + '"><i class="fa fa-trash"></i> 删除</button></td>' : '<td style="display:none;"></td>';
+                    var cb = isAdmin ? '<td><input type="checkbox" class="row-checkbox" data-id="' + item.id + '"></td>' : '<td style="display:none;"></td>';
+                    html += '<tr>' +
+                        cb +
+                        '<td>' + formatQishuTwoChar(item.qishu) + '</td>' +
+                        '<td>' + (item.laiwenUnit || '') + '</td>' +
+                        '<td>' + (item.wenhao || '') + '</td>' +
+                        '<td>' + (item.pishiContent || '') + '</td>' +
+                        '<td>' + (item.pishiDate || '') + '</td>' +
+                        '<td>' + (item.leaderDept || '') + '</td>' +
+                        '<td>' + (item.category || '') + '</td>' +
+                        '<td>' + (item.luoshiCuoshi || '') + '</td>' +
+                        '<td>' + (item.completeStatus || '') + '</td>' +
+                        op + '</tr>';
+                });
+                DOM.tableBody.innerHTML = html;
+            }
+
+            function getMorandiColor(index) {
+                return MORANDI_COLORS[index % MORANDI_COLORS.length];
+            }
+
+            function renderChart(statsObj) {
+                if (!statsObj || typeof statsObj !== 'object') return;
+                var labels = Object.keys(statsObj);
+                var values = labels.map(function (k) { return statsObj[k]; });
+                var ctx = document.getElementById('stats-chart');
+                if (!ctx) return;
+                ctx = ctx.getContext('2d');
+                if (chartInstance) chartInstance.destroy();
+                if (typeof Chart === 'undefined') {
+                    setTimeout(function () { renderChart(statsObj); }, 80);
+                    return;
+                }
+                if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
+                var labelCount = labels.length;
+                var needRotate = labelCount > 8;
+                var xTicksConfig = {
+                    display: true,
+                    font: { size: needRotate ? 11 : 13, weight: '600', family: 'Microsoft YaHei' },
+                    color: '#555',
+                    padding: needRotate ? 8 : 12,
+                    maxRotation: needRotate ? 45 : 0,
+                    minRotation: needRotate ? 45 : 0,
+                    autoSkip: false,
+                    callback: function (val, index) {
+                        var text = labels[index] || this.getLabelForValue(val) || '';
+                        if (needRotate && text && text.length > 12) return text.substr(0, 10) + '…';
+                        return text;
+                    }
+                };
+                var datasets = [{
+                    label: '承办数量',
+                    data: values,
+                    backgroundColor: labels.map(function (_, i) {
+                        var c = getMorandiColor(i);
+                        var g = ctx.createLinearGradient(0, 0, 0, 400);
+                        g.addColorStop(0, c.bg);
+                        g.addColorStop(1, c.border);
+                        return g;
+                    }),
+                    borderColor: labels.map(function (_, i) { return getMorandiColor(i).border; }),
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    hoverOffset: 10,
+                    datalabels: {
+                        display: true,
+                        align: 'center',
+                        anchor: 'center',
+                        color: labels.map(function (_, i) { return getMorandiColor(i).text; }),
+                        font: { family: 'Microsoft YaHei', weight: 'bold', size: 16 },
+                        formatter: function (v) { return v; }
+                    }
+                }];
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: labels, datasets: datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: { duration: 800, easing: 'easeOutQuart' },
+                        datasets: {
+                            bar: { barPercentage: 0.5, categoryPercentage: 0.65, maxBarThickness: 56 }
+                        },
+                        layout: { padding: { left: 12, right: 12, top: 8, bottom: needRotate ? 60 : 24 } },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '领导和责任部门承办批示文件数量',
+                                font: { size: 18, weight: 'bold', family: 'Microsoft YaHei' },
+                                padding: { top: 10, bottom: 20 },
+                                color: '#333'
+                            },
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                padding: 12,
+                                cornerRadius: 8,
+                                boxPadding: 4
+                            },
+                            datalabels: { className: 'chart-data-label' }
+                        },
+                        scales: {
+                            y: { display: false, beginAtZero: true },
+                            x: {
+                                grid: { display: false },
+                                ticks: xTicksConfig,
+                                border: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function refresh() {
+                apiFetch('/api/pishi').then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        pishiList = result.data || [];
+                        updateFilterOptions();
+                        var filtered = applyFilterInMemory();
+                        var sorted = sortPishiData(filtered);
+                        renderTable(sorted);
+                        renderChart(computeStats(filtered));
+                    }
+                });
+            }
+
+            function initAuth() {
+                var token = getToken();
+                if (!token) {
+                    DOM.userRole.innerHTML = '当前身份：<b>游客（未登录）</b>';
+                    DOM.loginBtn.style.display = '';
+                    DOM.logoutBtn.style.display = 'none';
+                    DOM.operationArea.style.display = 'none';
+                    DOM.adminMgmtBtn.style.display = 'none';
+                    var uploadBtn = document.getElementById('pishi-report-upload-btn');
+                    if (uploadBtn) uploadBtn.style.display = 'none';
+                    loadPishiReport().then(renderPishiReport);
+                    return;
+                }
+                apiFetch('/api/me').then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        isAdmin = true;
+                        currentUserRole = result.data.role || 'admin';
+                        currentUsername = result.data.username || '';
+                        var roleText = currentUserRole === 'super_admin' ? '超级管理员' : '管理员';
+                        DOM.userRole.innerHTML = '当前身份：<b>' + roleText + '（' + result.data.username + '）</b>';
+                        DOM.loginBtn.style.display = 'none';
+                        DOM.logoutBtn.style.display = '';
+                        DOM.operationArea.style.display = '';
+                        DOM.adminMgmtBtn.style.display = currentUserRole === 'super_admin' ? '' : 'none';
+                        var uploadBtn = document.getElementById('pishi-report-upload-btn');
+                        if (uploadBtn) uploadBtn.style.display = '';
+                        loadPishiReport().then(renderPishiReport);
+                    } else {
+                        clearToken();
+                        isAdmin = false;
+                        DOM.operationArea.style.display = 'none';
+                        var uploadBtn = document.getElementById('pishi-report-upload-btn');
+                        if (uploadBtn) uploadBtn.style.display = 'none';
+                        loadPishiReport().then(renderPishiReport);
+                    }
+                }).catch(function () {
+                    isAdmin = false;
+                    DOM.operationArea.style.display = 'none';
+                    var uploadBtn = document.getElementById('pishi-report-upload-btn');
+                    if (uploadBtn) uploadBtn.style.display = 'none';
+                    loadPishiReport().then(renderPishiReport);
+                });
+            }
+
+            function bindEvents() {
+                DOM.loginBtn.addEventListener('click', function () {
+                    var modal = new bootstrap.Modal(document.getElementById('login-modal'));
+                    modal.show();
+                });
+
+                document.getElementById('login-form').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    document.getElementById('do-login-btn').click();
+                });
+
+                document.getElementById('do-login-btn').addEventListener('click', function () {
+                    var username = document.getElementById('username').value.trim();
+                    var password = document.getElementById('password').value.trim();
+                    var rememberMe = document.getElementById('remember-me').checked;
+                    if (!username || !password) { showToast('请输入用户名和密码'); return; }
+                    fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: username, password: password, rememberMe: rememberMe })
+                    }).then(function (r) { return r.json(); }).then(function (result) {
+                        if (result.code === 0) {
+                            setToken(result.data.token, rememberMe);
+                            isAdmin = true;
+                            currentUserRole = result.data.role || 'admin';
+                            currentUsername = result.data.username || '';
+                            var roleText = currentUserRole === 'super_admin' ? '超级管理员' : '管理员';
+                            DOM.userRole.innerHTML = '当前身份：<b>' + roleText + '（' + result.data.username + '）</b>';
+                            DOM.loginBtn.style.display = 'none';
+                            DOM.logoutBtn.style.display = '';
+                            DOM.operationArea.style.display = '';
+                            DOM.adminMgmtBtn.style.display = currentUserRole === 'super_admin' ? '' : 'none';
+                            var uploadBtn = document.getElementById('pishi-report-upload-btn');
+                            if (uploadBtn) uploadBtn.style.display = '';
+                            loadPishiReport().then(renderPishiReport);
+                            bootstrap.Modal.getInstance(document.getElementById('login-modal')).hide();
+                            refresh();
+                            showToast('登录成功');
+                        } else showToast(result.msg);
+                    }).catch(function () { showToast('登录失败'); });
+                });
+
+                DOM.logoutBtn.addEventListener('click', function () {
+                    var token = getToken();
+                    if (token) {
+                        fetch('/api/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(function () {});
+                    }
+                    clearToken();
+                    isAdmin = false;
+                    DOM.userRole.innerHTML = '当前身份：<b>游客（未登录）</b>';
+                    DOM.loginBtn.style.display = '';
+                    DOM.logoutBtn.style.display = 'none';
+                    DOM.operationArea.style.display = 'none';
+                    DOM.adminMgmtBtn.style.display = 'none';
+                    var uploadBtn = document.getElementById('pishi-report-upload-btn');
+                    if (uploadBtn) uploadBtn.style.display = 'none';
+                    loadPishiReport().then(renderPishiReport);
+                    refresh();
+                    showToast('已退出登录');
+                });
+
+                function applyFilterAndRender() {
+                    var filtered = applyFilterInMemory();
+                    var sorted = sortPishiData(filtered);
+                    renderTable(sorted);
+                    renderChart(computeStats(filtered));
+                }
+                DOM.btnApplyFilter.addEventListener('click', applyFilterAndRender);
+                if (DOM.filterQishu) DOM.filterQishu.addEventListener('change', applyFilterAndRender);
+                if (DOM.searchInput) DOM.searchInput.addEventListener('input', debounce(applyFilterAndRender, 250));
+
+                function bindSortBtn(id, field) {
+                    var el = document.getElementById(id);
+                    if (!el) return;
+                    el.addEventListener('click', function () {
+                        sortConfig.type = (sortConfig.field === field && sortConfig.type === 'desc') ? 'asc' : 'desc';
+                        sortConfig.field = field;
+                        applyFilterAndRender();
+                    });
+                }
+                bindSortBtn('sort-qishu-btn', 'qishu');
+                bindSortBtn('sort-laiwenUnit-btn', 'laiwenUnit');
+                bindSortBtn('sort-pishiDate-btn', 'pishiDate');
+                bindSortBtn('sort-leaderDept-btn', 'leaderDept');
+                bindSortBtn('sort-category-btn', 'category');
+                bindSortBtn('sort-completeStatus-btn', 'completeStatus');
+
+                DOM.btnAdd.addEventListener('click', function () {
+                    DOM.pishiModalTitle.textContent = '新增批示';
+                    DOM.pishiForm.reset();
+                    DOM.pishiForm.querySelector('[name="id"]').value = '';
+                    DOM.pishiForm.querySelector('[name="completeStatus"]').value = '推进中';
+                    new bootstrap.Modal(document.getElementById('pishi-modal')).show();
+                });
+
+                DOM.pishiSaveBtn.addEventListener('click', function () {
+                    var fd = new FormData(DOM.pishiForm);
+                    var body = {};
+                    fd.forEach(function (v, k) { body[k] = v; });
+                    if (body.qishu) body.qishu = formatQishuTwoChar(body.qishu);
+                    var id = body.id;
+                    var url = id ? ('/api/pishi/' + id) : '/api/pishi';
+                    var method = id ? 'PUT' : 'POST';
+                    apiFetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    }).then(function (r) { return r.json(); }).then(function (result) {
+                        if (result.code === 0) {
+                            bootstrap.Modal.getInstance(document.getElementById('pishi-modal')).hide();
+                            showToast(id ? '修改成功' : '新增成功');
+                            refresh();
+                        } else showToast(result.msg);
+                    }).catch(function () { showToast('保存失败'); });
+                });
+
+                DOM.tableBody.addEventListener('click', function (e) {
+                    var editBtn = e.target.closest('.edit-btn');
+                    var delBtn = e.target.closest('.del-btn');
+                    if (editBtn && isAdmin) {
+                        var id = editBtn.dataset.id;
+                        var item = pishiList.find(function (p) { return String(p.id) === String(id); });
+                        if (!item) return;
+                        DOM.pishiModalTitle.textContent = '编辑批示';
+                        DOM.pishiForm.querySelector('[name="id"]').value = item.id;
+                        DOM.pishiForm.querySelector('[name="qishu"]').value = formatQishuTwoChar(item.qishu);
+                        DOM.pishiForm.querySelector('[name="laiwenUnit"]').value = item.laiwenUnit || '';
+                        DOM.pishiForm.querySelector('[name="wenhao"]').value = item.wenhao || '';
+                        DOM.pishiForm.querySelector('[name="pishiContent"]').value = item.pishiContent || '';
+                        DOM.pishiForm.querySelector('[name="pishiDate"]').value = item.pishiDate || '';
+                        DOM.pishiForm.querySelector('[name="leaderDept"]').value = item.leaderDept || '';
+                        DOM.pishiForm.querySelector('[name="category"]').value = item.category || '';
+                        DOM.pishiForm.querySelector('[name="luoshiCuoshi"]').value = item.luoshiCuoshi || '';
+                        DOM.pishiForm.querySelector('[name="completeStatus"]').value = item.completeStatus || '推进中';
+                        new bootstrap.Modal(document.getElementById('pishi-modal')).show();
+                    }
+                    if (delBtn && isAdmin) {
+                        if (!confirm('确定删除该条批示吗？')) return;
+                        apiFetch('/api/pishi/' + delBtn.dataset.id, { method: 'DELETE' }).then(function (r) { return r.json(); }).then(function (result) {
+                            if (result.code === 0) {
+                                showToast('已删除');
+                                refresh();
+                            } else showToast(result.msg);
+                        }).catch(function () { showToast('删除失败'); });
+                    }
+                });
+
+                DOM.btnBatchDel.addEventListener('click', function () {
+                    var checked = document.querySelectorAll('.row-checkbox:checked');
+                    if (!checked.length) { showToast('请选择要删除的记录'); return; }
+                    if (!confirm('确定删除选中的 ' + checked.length + ' 条记录吗？')) return;
+                    var ids = Array.prototype.map.call(checked, function (c) { return c.dataset.id; });
+                    apiFetch('/api/pishi/batch-delete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ids: ids })
+                    }).then(function (r) { return r.json(); }).then(function (result) {
+                        if (result.code === 0) {
+                            showToast('已批量删除 ' + result.data.deleted + ' 条');
+                            refresh();
+                        } else showToast(result.msg);
+                    }).catch(function () { showToast('批量删除失败'); });
+                });
+
+                if (DOM.selectAll) {
+                    DOM.selectAll.addEventListener('change', function () {
+                        var cbs = document.querySelectorAll('.row-checkbox');
+                        cbs.forEach(function (cb) { cb.checked = DOM.selectAll.checked; });
+                    });
+                }
+
+                DOM.pishiBackupBtn.addEventListener('click', function () {
+                    apiFetch('/api/pishi/backup').then(function (r) { return r.json(); }).then(function (result) {
+                        if (result.code === 0) {
+                            var blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' });
+                            var a = document.createElement('a');
+                            a.href = URL.createObjectURL(blob);
+                            a.download = '批示督办备份_' + new Date().toISOString().slice(0, 10) + '.json';
+                            a.click();
+                            URL.revokeObjectURL(a.href);
+                            showToast('备份已下载');
+                        } else showToast(result.msg || '备份失败');
+                    }).catch(function () { showToast('备份失败'); });
+                });
+
+                DOM.pishiRestoreBtn.addEventListener('click', function () {
+                    var modal = new bootstrap.Modal(document.getElementById('pishi-restore-modal'));
+                    modal.show();
+                });
+
+                DOM.pishiDoRestoreBtn.addEventListener('click', function () {
+                    var file = DOM.pishiRestoreFile && DOM.pishiRestoreFile.files[0];
+                    if (!file) { showToast('请选择备份文件'); return; }
+                    var fr = new FileReader();
+                    fr.onload = function () {
+                        try {
+                            var data = JSON.parse(fr.result);
+                            var arr = Array.isArray(data) ? data : (data.data || data.items || []);
+                            apiFetch('/api/pishi/restore', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ data: arr })
+                            }).then(function (r) { return r.json(); }).then(function (result) {
+                                if (result.code === 0) {
+                                    bootstrap.Modal.getInstance(document.getElementById('pishi-restore-modal')).hide();
+                                    DOM.pishiRestoreFile.value = '';
+                                    refresh();
+                                    showToast('数据恢复成功');
+                                } else showToast(result.msg || '恢复失败');
+                            }).catch(function () { showToast('恢复失败'); });
+                        } catch (e) { showToast('文件格式错误'); }
+                    };
+                    fr.readAsText(file);
+                });
+
+                // 数据概览：点击标题折叠/展开
+                var overviewToggle = document.querySelector('.overview-title-toggle');
+                var overviewBody = document.getElementById('pishi-overview-card-body');
+                var overviewChevron = document.querySelector('.overview-chevron');
+                if (overviewToggle && overviewBody && overviewChevron) {
+                    overviewToggle.addEventListener('click', function () {
+                        var hidden = overviewBody.style.display === 'none';
+                        overviewBody.style.display = hidden ? '' : 'none';
+                        overviewChevron.className = hidden ? 'fa fa-chevron-down overview-chevron me-1' : 'fa fa-chevron-right overview-chevron me-1';
+                    });
+                }
+                // 批示办理情况报告：点击标题折叠/展开
+                var titleToggle = document.querySelector('.pishi-report-title-toggle');
+                var reportCardBody = document.getElementById('pishi-report-card-body');
+                var reportChevron = document.querySelector('.pishi-report-chevron');
+                if (titleToggle && reportCardBody && reportChevron) {
+                    titleToggle.addEventListener('click', function () {
+                        var hidden = reportCardBody.style.display === 'none';
+                        reportCardBody.style.display = hidden ? '' : 'none';
+                        reportChevron.className = hidden ? 'fa fa-chevron-down pishi-report-chevron me-1' : 'fa fa-chevron-right pishi-report-chevron me-1';
+                    });
+                }
+                // 下载模板
+                var downloadPishiTemplateBtn = document.getElementById('download-pishi-template-btn');
+                if (downloadPishiTemplateBtn) {
+                    downloadPishiTemplateBtn.addEventListener('click', function () {
+                        fetch('/api/pishi/template').then(function (res) {
+                            var ct = res.headers.get('Content-Type') || '';
+                            if (ct.indexOf('json') !== -1 || !res.ok) {
+                                return res.json().then(function (err) { showToast(err.msg || '下载失败，请重试'); }).catch(function () { showToast('下载失败，请重试'); });
+                            }
+                            return res.blob().then(function (blob) {
+                                var a = document.createElement('a');
+                                a.href = URL.createObjectURL(blob);
+                                a.download = '批示督办导入模板.xlsx';
+                                a.click();
+                                URL.revokeObjectURL(a.href);
+                                showToast('模板已下载');
+                            });
+                        }).catch(function () { showToast('下载失败，请检查网络或联系管理员'); });
+                    });
+                }
+                // 批示办理情况报告：上传
+                var uploadReportBtn = document.getElementById('pishi-report-upload-btn');
+                if (uploadReportBtn) {
+                    uploadReportBtn.addEventListener('click', function () {
+                        document.getElementById('pishi-report-upload-form').reset();
+                        var today = new Date();
+                        document.getElementById('pishi-report-upload-date').value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+                        new bootstrap.Modal(document.getElementById('pishi-report-upload-modal')).show();
+                    });
+                }
+                var uploadReportSubmit = document.getElementById('pishi-report-upload-submit');
+                if (uploadReportSubmit) {
+                    uploadReportSubmit.addEventListener('click', function () {
+                        var fileInput = document.getElementById('pishi-report-upload-file');
+                        var title = document.querySelector('#pishi-report-upload-form [name="title"]').value.trim();
+                        var uploadDate = document.getElementById('pishi-report-upload-date').value.trim();
+                        if (!fileInput || !fileInput.files || !fileInput.files[0]) { showToast('请选择文件'); return; }
+                        if (!uploadDate) {
+                            var d = new Date();
+                            uploadDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                        }
+                        var fd = new FormData();
+                        fd.append('title', title);
+                        fd.append('uploadDate', uploadDate);
+                        fd.append('file', fileInput.files[0]);
+                        apiFetch('/api/pishi/report/upload', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (result) {
+                            if (result.code === 0) {
+                                bootstrap.Modal.getInstance(document.getElementById('pishi-report-upload-modal')).hide();
+                                loadPishiReport().then(renderPishiReport);
+                                showToast('上传成功');
+                            } else showToast(result.msg || '上传失败');
+                        }).catch(function () { showToast('上传失败'); });
+                    });
+                }
+                // 批示办理情况报告：编辑、删除（事件委托）
+                var reportArea = document.getElementById('pishi-report-area');
+                if (reportArea) {
+                    reportArea.addEventListener('click', function (e) {
+                        var editBtn = e.target.closest('.pishi-report-edit-btn');
+                        var delBtn = e.target.closest('.pishi-report-del-btn');
+                        if (editBtn) {
+                            var id = editBtn.dataset.id;
+                            var p = pishiReportData.find(function (x) { return String(x.id) === String(id); });
+                            if (p) {
+                                document.getElementById('pishi-report-edit-id').value = p.id;
+                                document.getElementById('pishi-report-edit-date').value = p.uploadDate || (p.createdAt ? p.createdAt.slice(0, 10) : '');
+                                document.getElementById('pishi-report-edit-title').value = p.title || p.originalName || '';
+                                document.getElementById('pishi-report-edit-file').value = '';
+                                new bootstrap.Modal(document.getElementById('pishi-report-edit-modal')).show();
+                            }
+                            return;
+                        }
+                        if (delBtn) {
+                            if (!confirm('确定要删除该报告吗？')) return;
+                            var id = delBtn.dataset.id;
+                            apiFetch('/api/pishi/report/' + id, { method: 'DELETE' }).then(function (r) { return r.json(); }).then(function (result) {
+                                if (result.code === 0) {
+                                    loadPishiReport().then(renderPishiReport);
+                                    showToast('已删除');
+                                } else showToast(result.msg);
+                            }).catch(function () { showToast('删除失败'); });
+                            return;
+                        }
+                    });
+                }
+                var editReportSubmit = document.getElementById('pishi-report-edit-submit');
+                if (editReportSubmit) {
+                    editReportSubmit.addEventListener('click', function () {
+                        var id = document.getElementById('pishi-report-edit-id').value;
+                        var title = document.getElementById('pishi-report-edit-title').value.trim();
+                        var uploadDate = document.getElementById('pishi-report-edit-date').value.trim();
+                        var fileInput = document.getElementById('pishi-report-edit-file');
+                        if (!id || !title) { showToast('标题不能为空'); return; }
+                        if (fileInput && fileInput.files && fileInput.files[0]) {
+                            var fd = new FormData();
+                            fd.append('title', title);
+                            fd.append('uploadDate', uploadDate);
+                            fd.append('file', fileInput.files[0]);
+                            apiFetch('/api/pishi/report/' + id + '/replace-file', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (result) {
+                                if (result.code === 0) {
+                                    bootstrap.Modal.getInstance(document.getElementById('pishi-report-edit-modal')).hide();
+                                    document.getElementById('pishi-report-edit-file').value = '';
+                                    loadPishiReport().then(renderPishiReport);
+                                    showToast('修改并重新上传成功');
+                                } else showToast(result.msg || '修改失败');
+                            }).catch(function () { showToast('修改失败'); });
+                        } else {
+                            apiFetch('/api/pishi/report/' + id, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ title: title, uploadDate: uploadDate || undefined })
+                            }).then(function (r) { return r.json(); }).then(function (result) {
+                                if (result.code === 0) {
+                                    bootstrap.Modal.getInstance(document.getElementById('pishi-report-edit-modal')).hide();
+                                    loadPishiReport().then(renderPishiReport);
+                                    showToast('修改成功');
+                                } else showToast(result.msg || '修改失败');
+                            }).catch(function () { showToast('修改失败'); });
+                        }
+                    });
+                }
+
+                DOM.btnUploadExcel.addEventListener('click', function () {
+                    var file = DOM.excelUpload && DOM.excelUpload.files[0];
+                    if (!file) { showToast('请选择 Excel 文件'); return; }
+                    function doParse() {
+                        var reader = new FileReader();
+                        reader.onload = function (ev) {
+                            try {
+                                if (typeof XLSX === 'undefined') { showToast('Excel 解析库加载中，请稍后再试'); return; }
+                                var wb = XLSX.read(ev.target.result, { type: 'binary' });
+                                var ws = wb.Sheets[wb.SheetNames[0]];
+                                var rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                                if (!rows || rows.length < 2) { showToast('文件中没有数据行'); return; }
+                                var headers = rows[0];
+                                var dataRows = rows.slice(1);
+                                var objs = dataRows.map(function (row) {
+                                    var o = {};
+                                    headers.forEach(function (h, i) {
+                                        if (h && row[i] !== undefined && row[i] !== null) o[h] = row[i];
+                                    });
+                                    return o;
+                                }).filter(function (o) { return Object.keys(o).length > 0; });
+                                if (objs.length === 0) { showToast('没有可导入的数据'); return; }
+                                apiFetch('/api/pishi/import', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ rows: objs })
+                                }).then(function (r) { return r.json(); }).then(function (result) {
+                                    if (result.code === 0) {
+                                        showToast('成功导入 ' + result.data.imported + ' 条');
+                                        DOM.excelUpload.value = '';
+                                        refresh();
+                                    } else showToast(result.msg);
+                                }).catch(function () { showToast('导入失败'); });
+                            } catch (err) {
+                                showToast('解析 Excel 失败：' + (err.message || '未知错误'));
+                            }
+                        };
+                        reader.readAsBinaryString(file);
+                    }
+                    if (typeof XLSX !== 'undefined') {
+                        doParse();
+                        return;
+                    }
+                    var s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+                    s.onload = doParse;
+                    s.onerror = function () { showToast('Excel 解析库加载失败'); };
+                    document.body.appendChild(s);
+                });
+
+                if (DOM.adminMgmtBtn) {
+                    DOM.adminMgmtBtn.addEventListener('click', function () {
+                        apiFetch('/api/admin/list').then(function (r) { return r.json(); }).then(function (result) {
+                            if (result.code === 0) {
+                                var html = '';
+                                result.data.forEach(function (a) {
+                                    var roleLab = a.role === 'super_admin' ? '超级管理员' : '普通管理员';
+                                    var isSelf = a.username === currentUsername;
+                                    var forceBtn = !isSelf && a.role !== 'super_admin' ? '<button class="btn btn-warning btn-sm force-logout-btn" data-username="' + a.username + '">强制下线</button>' : '';
+                                    var editBtn = (a.role !== 'super_admin' || isSelf) ? '<button class="btn btn-info btn-sm edit-admin-btn" data-id="' + a.id + '" data-username="' + a.username + '" data-role="' + (a.role || 'admin') + '">编辑</button>' : '';
+                                    var delBtn = a.role !== 'super_admin' ? '<button class="btn btn-danger btn-sm del-admin-btn" data-id="' + a.id + '" data-username="' + a.username + '">删除</button>' : '';
+                                    html += '<tr><td>' + a.username + '</td><td>' + roleLab + '</td><td class="d-flex gap-1">' + forceBtn + editBtn + delBtn + '</td></tr>';
+                                });
+                                DOM.adminListBody.innerHTML = html || '<tr><td colspan="3">暂无管理员</td></tr>';
+                                new bootstrap.Modal(document.getElementById('admin-modal')).show();
+                            }
+                        });
+                    });
+                }
+
+                if (DOM.adminListBody) {
+                    DOM.adminListBody.addEventListener('click', function (e) {
+                        var t = e.target.closest('.force-logout-btn');
+                        if (t) {
+                            if (!confirm('确定强制 ' + t.dataset.username + ' 下线？')) return;
+                            apiFetch('/api/admin/force-logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: t.dataset.username }) })
+                                .then(function (r) { return r.json(); })
+                                .then(function (result) {
+                                    if (result.code === 0) { showToast('已强制下线'); bootstrap.Modal.getInstance(document.getElementById('admin-modal')).hide(); }
+                                    else showToast(result.msg);
+                                });
+                            return;
+                        }
+                        t = e.target.closest('.edit-admin-btn');
+                        if (t) {
+                            DOM.adminFormTitle.textContent = '编辑管理员';
+                            DOM.adminForm.querySelector('[name="id"]').value = t.dataset.id;
+                            DOM.adminForm.querySelector('[name="username"]').value = t.dataset.username;
+                            DOM.adminForm.querySelector('[name="username"]').readOnly = true;
+                            DOM.adminForm.querySelector('[name="password"]').value = '';
+                            DOM.adminForm.querySelector('[name="password"]').placeholder = '留空则不修改';
+                            DOM.adminForm.querySelector('[name="role"]').value = t.dataset.role;
+                            new bootstrap.Modal(document.getElementById('admin-form-modal')).show();
+                            return;
+                        }
+                        t = e.target.closest('.del-admin-btn');
+                        if (t) {
+                            if (!confirm('确定删除管理员 ' + t.dataset.username + '？')) return;
+                            apiFetch('/api/admin/' + t.dataset.id, { method: 'DELETE' }).then(function (r) { return r.json(); }).then(function (result) {
+                                if (result.code === 0) { showToast('已删除'); DOM.adminMgmtBtn.click(); }
+                                else showToast(result.msg);
+                            });
+                        }
+                    });
+                }
+
+                if (DOM.adminAddBtn) {
+                    DOM.adminAddBtn.addEventListener('click', function () {
+                        DOM.adminFormTitle.textContent = '新增管理员';
+                        DOM.adminForm.reset();
+                        DOM.adminForm.querySelector('[name="id"]').value = '';
+                        DOM.adminForm.querySelector('[name="username"]').readOnly = false;
+                        DOM.adminForm.querySelector('[name="password"]').placeholder = '请输入密码';
+                        DOM.adminForm.querySelector('[name="role"]').value = 'admin';
+                        new bootstrap.Modal(document.getElementById('admin-form-modal')).show();
+                    });
+                }
+
+                if (DOM.adminSaveBtn) {
+                    DOM.adminSaveBtn.addEventListener('click', function () {
+                        var id = DOM.adminForm.querySelector('[name="id"]').value;
+                        var username = DOM.adminForm.querySelector('[name="username"]').value.trim();
+                        var password = DOM.adminForm.querySelector('[name="password"]').value;
+                        var role = DOM.adminForm.querySelector('[name="role"]').value;
+                        if (!username) { showToast('请输入用户名'); return; }
+                        if (!id && !password) { showToast('请输入密码'); return; }
+                        var body = { username: username, role: role };
+                        if (id && password) body.password = password;
+                        if (!id) body.password = password;
+                        var url = id ? ('/api/admin/' + id) : '/api/admin/add';
+                        var method = id ? 'PUT' : 'POST';
+                        apiFetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                            .then(function (r) { return r.json(); })
+                            .then(function (result) {
+                                if (result.code === 0) {
+                                    showToast('保存成功');
+                                    bootstrap.Modal.getInstance(document.getElementById('admin-form-modal')).hide();
+                                    DOM.adminMgmtBtn.click();
+                                } else showToast(result.msg);
+                            });
+                    });
+                }
+            }
+
+            function init() {
+                initAuth();
+                bindEvents();
+                apiFetch('/api/pishi').then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        pishiList = result.data || [];
+                        updateFilterOptions();
+                        var filtered = applyFilterInMemory();
+                        var sorted = sortPishiData(filtered);
+                        renderTable(sorted);
+                        renderChart(computeStats(filtered));
+                    }
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', init);
+        })();
+    </script>
+</body>
+</html>

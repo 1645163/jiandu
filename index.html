@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>市人大常委会监督协调处</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-size: 14px; line-height: 1.5; }
+        .navbar { background: linear-gradient(135deg, #165DFF 0%, #0d3ba8 100%); padding: 0.5rem 1rem; }
+        .card { border-radius: 8px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); margin-bottom: 20px; }
+        .table-header-blue { background-color: #165DFF !important; color: white !important; border-color: #1452e0 !important; }
+        .table-header-blue th { border-color: #1452e0 !important; }
+        .toast-notice { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 300px; padding: 12px 20px; background: rgba(0,0,0,0.8); color: white; border-radius: 4px; z-index: 9999; opacity: 0; transition: opacity 0.3s; text-align: center; }
+        .toast-notice.show { opacity: 1; }
+        .nav-module-link { color: rgba(255,255,255,0.9) !important; text-decoration: none; }
+        .nav-module-link:hover { color: #fff !important; }
+        .overview-title-toggle { cursor: pointer; user-select: none; }
+        .sort-btn { background: transparent; border: none; cursor: pointer; font-size: 14px; margin-left: 4px; padding: 0 2px; }
+        .sort-btn:hover { opacity: 0.85; }
+        /* 数据概览 - 区域1高度=区域2+区域3，区域3左对齐区域2 */
+        .jiandu-overview { margin-bottom: 0; display: flex; gap: 16px; align-items: stretch; }
+        .jiandu-hero { background: linear-gradient(135deg, #165DFF 0%, #0d3ba8 100%); border-radius: 10px; padding: 20px 24px; color: #fff; display: flex; flex-direction: column; justify-content: center; min-width: 190px; flex: 0 0 auto; box-shadow: 0 4px 20px rgba(22, 93, 255, 0.25); align-self: stretch; }
+        .jiandu-overview-right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+        .jiandu-overview-charts { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; min-height: 220px; }
+        .jiandu-hero .hero-icon { font-size: 28px; opacity: 0.95; margin-bottom: 8px; }
+        .jiandu-hero .hero-label { font-size: 13px; opacity: 0.95; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .jiandu-hero .hero-value { font-size: 42px; font-weight: 800; letter-spacing: -1px; line-height: 1.2; }
+        .jiandu-hero .hero-value span { font-size: 16px; font-weight: 600; margin-left: 4px; opacity: 0.95; }
+        .jiandu-breakdown-wrap { flex: 1; min-width: 0; }
+        .jiandu-breakdown-title { font-size: 12px; color: #6c757d; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.3px; }
+        .jiandu-breakdown { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        @media (max-width: 1200px) { .jiandu-chart-wrap { min-width: 180px; } }
+        @media (max-width: 991px) { .jiandu-breakdown { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) { .jiandu-overview { flex-direction: column; } .jiandu-hero { min-width: 100%; align-self: auto; } }
+        @media (max-width: 576px) { .jiandu-breakdown { grid-template-columns: repeat(2, 1fr); } }
+        .jiandu-stat-box { padding: 12px; border-radius: 8px; text-align: center; color: #fff; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.2s, box-shadow 0.2s; }
+        .jiandu-stat-box:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .jiandu-stat-box .label { font-size: 12px; opacity: 0.95; margin-bottom: 4px; line-height: 1.3; }
+        .jiandu-stat-box .value { font-size: 18px; font-weight: 700; }
+        .jiandu-stat-1 { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .jiandu-stat-2 { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+        .jiandu-stat-3 { background: linear-gradient(135deg, #10b981, #34d399); }
+        .jiandu-stat-4 { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+        .jiandu-stat-5 { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
+        .jiandu-stat-box { cursor: pointer; }
+        .jiandu-stat-box.overview-stat-active { box-shadow: 0 0 0 3px rgba(255,255,255,0.8); }
+        .jiandu-chart-wrap { flex: 1; min-width: 260px; min-height: 200px; border-radius: 10px; padding: 14px; background: linear-gradient(145deg, #ffffff 0%, #f0f4ff 100%); box-shadow: 0 4px 12px rgba(22, 93, 255, 0.08); cursor: pointer; display: flex; flex-direction: column; border: 1px solid rgba(22, 93, 255, 0.1); overflow: hidden; }
+        .jiandu-chart-wrap .chart-title { font-size: 12px; color: #6c757d; font-weight: 600; margin-bottom: 8px; flex-shrink: 0; }
+        .jiandu-chart-wrap .chart-canvas-wrap { flex: 1; min-height: 160px; position: relative; width: 100%; }
+        .jiandu-chart-wrap canvas { width: 100% !important; height: 100% !important; }
+        /* 资料区折叠 */
+        .topic-files-area { display: none; padding: 12px 0; border-top: 1px solid #eee; margin-top: 8px; }
+        .topic-files-upload-wrap { text-align: right; margin-top: 8px; }
+        .topic-files-toggle-btn { transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.15s; }
+        .topic-files-toggle-btn.topic-files-has-files { background-color: #165DFF; color: #fff; border-color: #165DFF; }
+        .topic-files-toggle-btn.topic-files-has-files:hover { background-color: #0d3ba8; color: #fff; border-color: #0d3ba8; transform: scale(1.08); }
+        .topic-files-toggle-btn.active { background-color: #165DFF; color: #fff; border-color: #165DFF; }
+        .topic-files-area.show { display: block; }
+        .progress-table { border: 1px solid #dee2e6; border-radius: 6px; }
+        .progress-table thead th { background: #f8f9fa; font-weight: 600; color: #6c757d; }
+        .progress-table .progress-date-col { min-width: 100px; }
+        .progress-table .progress-name-col { min-width: 180px; }
+        .progress-table .progress-op-col { white-space: nowrap; text-align: right; }
+        .btn-group-inline { display: inline-flex; align-items: flex-start; gap: 5px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">市人大常委会监督协调处 <span class="navbar-version">V1.0</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active text-white" href="index.html">监督议题</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="pishi.html">批示督办</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="minsheng.html">民生实事</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meiyue.html">每月工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meizhou.html">每周工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="falv.html">法律法规</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">工作计划</a></li>
+                </ul>
+                <div class="navbar-nav ms-auto">
+                    <span class="nav-link text-white" id="user-role">当前身份：<b>游客（未登录）</b></span>
+                    <button class="btn btn-outline-light ms-2" id="admin-mgmt-btn" style="display: none;"><i class="fa fa-users"></i> 管理员管理</button>
+                    <button class="btn btn-outline-light ms-2" id="login-btn">管理员登录</button>
+                    <button class="btn btn-outline-light ms-2" id="logout-btn" style="display: none;">退出登录</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5 pb-4">
+        <!-- 数据概览（点击标题可折叠） -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 overview-title-toggle"><i class="fa fa-chevron-down overview-chevron me-1"></i>数据概览&nbsp;&nbsp;<span class="text-muted small fw-normal">Tips:点击相应类别，进行议题筛选</span></h5>
+                <div>
+                    <label for="year-filter" class="me-2">筛选年度：</label>
+                    <select class="form-select d-inline-block w-auto" id="year-filter">
+                        <option value="">全部年度</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body" id="overview-card-body">
+                <div class="jiandu-overview" id="jiandu-overview"></div>
+            </div>
+        </div>
+
+        <!-- 操作区域（仅管理员可见） -->
+        <div class="card" id="operation-area" style="display: none;">
+            <div class="card-header"><h5 class="mb-0">数据操作</h5></div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <div class="input-group w-auto flex-grow-1" style="min-width: 200px;">
+                        <input type="file" class="form-control" id="excel-upload" accept=".xlsx,.xls">
+                        <button class="btn btn-primary" id="btn-upload-excel"><i class="fa fa-upload"></i> 上传Excel</button>
+                        <button type="button" class="btn btn-outline-secondary" id="download-template-btn"><i class="fa fa-download"></i> 下载模板</button>
+                    </div>
+                    <button class="btn btn-success" id="btn-add"><i class="fa fa-plus"></i> 新增议题</button>
+                    <button class="btn btn-danger" id="btn-batch-del"><i class="fa fa-trash"></i> 批量删除</button>
+                    <button class="btn btn-info" id="dept-mgmt-btn"><i class="fa fa-sitemap"></i> 部门管理</button>
+                    <div class="btn-group-inline">
+                        <button class="btn btn-secondary" id="jiandu-backup-btn"><i class="fa fa-database"></i> 备份数据</button>
+                        <button class="btn btn-dark" id="jiandu-restore-btn"><i class="fa fa-recycle"></i> 数据恢复</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 监督议题列表 -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="mb-0">常委会年度监督议题</h5>
+                <div class="input-group w-auto" style="min-width: 180px;">
+                    <span class="input-group-text"><i class="fa fa-search"></i></span>
+                    <input type="text" class="form-control" id="search-input" placeholder="模糊搜索">
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-header-blue">
+                            <tr>
+                                <th style="width: 40px;"><input type="checkbox" id="select-all" title="全选"></th>
+                                <th style="min-width: 60px;">序号</th>
+                                <th style="min-width: 90px;">年度 <button class="sort-btn" id="sort-year-btn" title="排序"><i class="fa fa-sort"></i></button></th>
+                                <th style="min-width: 70px;">月份 <button class="sort-btn" id="sort-month-btn" title="排序"><i class="fa fa-sort"></i></button></th>
+                                <th style="min-width: 200px;">监督内容</th>
+                                <th style="min-width: 120px;">监督形式 <button class="sort-btn" id="sort-form-btn" title="排序"><i class="fa fa-sort"></i></button></th>
+                                <th style="min-width: 110px;">部门/处室 <button class="sort-btn" id="sort-dept-btn" title="排序"><i class="fa fa-sort"></i></button></th>
+                                <th style="min-width: 130px; white-space: nowrap;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topic-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/编辑议题模态框 -->
+    <div class="modal fade" id="topic-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="topic-modal-title">新增议题</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="topic-form">
+                        <input type="hidden" name="id">
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">年度</label>
+                                <input type="number" class="form-control" name="year" placeholder="如 2024" min="2000" max="2100" required>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">月份（可选，1-12）</label>
+                                <input type="number" class="form-control" name="month" placeholder="如 3" min="1" max="12">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">监督形式</label>
+                                <select class="form-select" name="form" required>
+                                    <option value="">请选择</option>
+                                    <option value="听取审议报告">听取审议报告</option>
+                                    <option value="财经工作监督">财经工作监督</option>
+                                    <option value="执法检查">执法检查</option>
+                                    <option value="专题询问">专题询问</option>
+                                    <option value="视察">视察</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">部门/处室</label>
+                                <input type="text" class="form-control" name="department" placeholder="部门/处室" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">监督内容</label>
+                            <textarea class="form-control" name="content" rows="3" placeholder="请输入监督内容" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="topic-save-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上传资料模态框 -->
+    <div class="modal fade" id="file-upload-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">上传文件资料</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="file-upload-topic-id">
+                    <div class="mb-3">
+                        <label class="form-label">日期（可选）</label>
+                        <input type="date" class="form-control" id="file-upload-date">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">资料标题（可选，默认用文件名）</label>
+                        <input type="text" class="form-control" id="file-upload-title" placeholder="请输入标题">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">选择文件（PDF、Word）</label>
+                        <input type="file" class="form-control" id="file-upload-input" accept=".pdf,.doc,.docx" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="file-upload-submit"><i class="fa fa-upload"></i> 上传</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 部门与监督方式排序管理模态框 -->
+    <div class="modal fade" id="dept-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">部门与监督方式排序管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="mb-2"><i class="fa fa-sitemap me-1"></i>监督方式排序（按顺序显示，全局有效）</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-hover">
+                            <thead><tr><th style="width:60px">顺序</th><th>监督形式</th><th style="width:120px">操作</th></tr></thead>
+                            <tbody id="form-sort-body"></tbody>
+                        </table>
+                    </div>
+                    <h6 class="mb-2"><i class="fa fa-building me-1"></i>部门管理（按ID升序排列，全局有效）</h6>
+                    <div class="mb-3">
+                        <button class="btn btn-success btn-sm" id="dept-add-btn"><i class="fa fa-plus"></i> 添加部门</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead><tr><th>排序ID</th><th>部门名称</th><th>操作</th></tr></thead>
+                            <tbody id="dept-list-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 新增/编辑部门模态框 -->
+    <div class="modal fade" id="dept-form-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dept-form-title">添加部门</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="dept-form">
+                        <input type="hidden" name="id" id="dept-form-id">
+                        <div class="mb-3">
+                            <label class="form-label">排序ID（数字，用于升序排列）</label>
+                            <input type="number" class="form-control" name="sortId" id="dept-form-sortId" min="1" placeholder="如 1">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">部门名称</label>
+                            <input type="text" class="form-control" name="name" id="dept-form-name" required placeholder="如 住建局">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="dept-form-save-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据恢复模态框 -->
+    <div class="modal fade" id="jiandu-restore-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">数据恢复</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">选择备份文件（JSON 格式）</label>
+                        <input type="file" class="form-control" id="jiandu-restore-file" accept=".json">
+                    </div>
+                    <p class="text-muted small mb-0">恢复后将覆盖当前全部监督议题数据。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="jiandu-do-restore-btn">确认恢复</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-notice" id="toast-notice"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" defer></script>
+    <script>
+        (function () {
+            var token = null;
+            function getToken() { return localStorage.getItem('token') || sessionStorage.getItem('token'); }
+            function setToken(t, remember) { token = t; if (remember) localStorage.setItem('token', t); else sessionStorage.setItem('token', t); }
+            function clearToken() { token = null; localStorage.removeItem('token'); sessionStorage.removeItem('token'); }
+            function showToast(msg) {
+                var el = document.getElementById('toast-notice');
+                if (el) { el.textContent = msg; el.classList.add('show'); setTimeout(function () { el.classList.remove('show'); }, 2500); }
+            }
+            function apiFetch(url, opts) {
+                opts = opts || {};
+                var h = opts.headers || {};
+                var t = getToken();
+                if (t) h['Authorization'] = 'Bearer ' + t;
+                opts.headers = h;
+                return fetch(url, opts).then(function (r) {
+                    if (r.status === 401) { clearToken(); isAdmin = false; initAuth(); throw new Error('UNAUTHORIZED'); }
+                    return r;
+                });
+            }
+
+            var topicsData = [];
+            var topicFilesCache = {};
+            var departmentsData = [];
+            var formSortOrder = ['听取审议报告', '财经工作监督', '执法检查', '专题询问', '视察'];
+            var isAdmin = false;
+            var sortConfig = { field: 'year', type: 'desc' };
+            var overviewFilter = { form: null, department: null, month: null };
+            var chartDeptInstance = null;
+            var chartMonthInstance = null;
+
+            function loadFormSort() {
+                return fetch('/api/form-sort').then(function (r) { return r.json(); }).then(function (res) {
+                    if (res.code === 0 && Array.isArray(res.data)) formSortOrder = res.data;
+                    return formSortOrder;
+                }).catch(function () { return formSortOrder; });
+            }
+
+            function loadDepartments() {
+                return fetch('/api/departments').then(function (r) { return r.json(); }).then(function (res) {
+                    if (res.code === 0) departmentsData = res.data || [];
+                    return departmentsData;
+                }).catch(function () { return []; });
+            }
+
+            function getDeptSortId(name) {
+                var d = departmentsData.find(function (x) { return x.name === name; });
+                return (d && typeof d.id === 'number') ? d.id : 9999;
+            }
+
+            function getFormSortIndex(form) {
+                var i = formSortOrder.indexOf(form || '');
+                return i >= 0 ? i : 9999;
+            }
+
+            function loadTopics() {
+                var year = document.getElementById('year-filter').value || '';
+                return fetch('/api/jiandu/topics' + (year ? '?year=' + year : '')).then(function (r) { return r.json(); }).then(function (res) {
+                    if (res.code === 0) topicsData = res.data || [];
+                    return topicsData;
+                }).catch(function () { topicsData = []; return []; });
+            }
+
+            function loadTopicFiles(topicId) {
+                return fetch('/api/jiandu/topics/' + topicId + '/files').then(function (r) { return r.json(); }).then(function (res) {
+                    if (res.code === 0) { topicFilesCache[topicId] = res.data || []; return topicFilesCache[topicId]; }
+                    return [];
+                }).catch(function () { return []; });
+            }
+
+            function renderOverview() {
+                var year = document.getElementById('year-filter').value || '';
+                var list = year ? topicsData : topicsData;
+                if (year) {
+                    var y = parseInt(year, 10);
+                    if (!isNaN(y)) list = topicsData.filter(function (t) { return t.year === y; });
+                }
+                var stats = { total: list.length };
+                formSortOrder.forEach(function (f) { stats[f] = list.filter(function (t) { return t.form === f; }).length; });
+
+                var deptOrdered = (departmentsData || []).slice().sort(function (a, b) { return (a.id || 0) - (b.id || 0); });
+                var deptCounts = {};
+                list.forEach(function (t) { var d = (t.department || '').trim(); if (d) deptCounts[d] = (deptCounts[d] || 0) + 1; });
+                var deptLabels = [];
+                var deptValues = [];
+                var addedDepts = {};
+                deptOrdered.forEach(function (d) {
+                    var name = (d.name || '').trim();
+                    if (name && deptCounts[name] > 0 && !addedDepts[name]) {
+                        deptLabels.push(name); deptValues.push(deptCounts[name]); addedDepts[name] = true;
+                    }
+                });
+                Object.keys(deptCounts).forEach(function (k) {
+                    if (k && !addedDepts[k]) { deptLabels.push(k); deptValues.push(deptCounts[k]); }
+                });
+
+                var monthCounts = {};
+                for (var mi = 0; mi <= 12; mi++) monthCounts[mi] = 0;
+                list.forEach(function (t) { var m = t.month >= 1 && t.month <= 12 ? t.month : 0; monthCounts[m]++; });
+                var monthLabels = [];
+                var monthValues = [];
+                var monthVals = [];
+                for (var mj = 1; mj <= 12; mj++) {
+                    if (monthCounts[mj] > 0) { monthLabels.push(mj + '月'); monthValues.push(monthCounts[mj]); monthVals.push(mj); }
+                }
+                if (monthCounts[0] > 0) { monthLabels.push('未填'); monthValues.push(monthCounts[0]); monthVals.push(0); }
+
+                var html = '<div class="jiandu-hero" id="overview-hero" style="cursor:pointer" title="点击清除筛选"><div class="hero-icon"><i class="fa fa-bar-chart"></i></div><div class="hero-label">全年共安排监督议题</div><div class="hero-value">' + stats.total + '<span>项</span></div></div>';
+                html += '<div class="jiandu-overview-right">';
+                html += '<div class="jiandu-breakdown-wrap"><div class="jiandu-breakdown-title"><i class="fa fa-pie-chart me-1"></i>按监督形式分布</div><div class="jiandu-breakdown">';
+                formSortOrder.forEach(function (f, idx) {
+                    var active = overviewFilter.form === f ? ' overview-stat-active' : '';
+                    html += '<div class="jiandu-stat-box jiandu-stat-' + (idx + 1) + active + '" data-form="' + (f + '').replace(/"/g, '&quot;') + '" title="点击筛选">';
+                    html += '<div class="label">' + f + '</div><div class="value">' + (stats[f] || 0) + '项</div></div>';
+                });
+                html += '</div></div>';
+                html += '<div class="jiandu-overview-charts">';
+                html += '<div class="jiandu-chart-wrap" id="chart-dept-wrap"><div class="chart-title"><i class="fa fa-building me-1"></i>按监督部门分布</div><div class="chart-canvas-wrap"><canvas id="chart-dept"></canvas></div></div>';
+                html += '<div class="jiandu-chart-wrap" id="chart-month-wrap"><div class="chart-title"><i class="fa fa-bar-chart me-1"></i>按工作时间分布</div><div class="chart-canvas-wrap"><canvas id="chart-month"></canvas></div></div>';
+                html += '</div></div>';
+
+                document.getElementById('jiandu-overview').innerHTML = html;
+
+                document.getElementById('overview-hero').addEventListener('click', function () {
+                    overviewFilter.form = null;
+                    overviewFilter.department = null;
+                    overviewFilter.month = null;
+                    renderOverview();
+                    renderTable();
+                });
+                document.querySelectorAll('.jiandu-stat-box[data-form]').forEach(function (el) {
+                    el.addEventListener('click', function () {
+                        var f = this.dataset.form;
+                        overviewFilter.form = overviewFilter.form === f ? null : f;
+                        overviewFilter.department = null;
+                        overviewFilter.month = null;
+                        renderOverview();
+                        renderTable();
+                    });
+                });
+
+                if (typeof Chart !== 'undefined') {
+                    if (chartDeptInstance) { chartDeptInstance.destroy(); chartDeptInstance = null; }
+                    if (chartMonthInstance) { chartMonthInstance.destroy(); chartMonthInstance = null; }
+                    var deptCtx = document.getElementById('chart-dept');
+                    var monthCtx = document.getElementById('chart-month');
+                    if (deptCtx) {
+                        if (deptLabels.length === 0) { deptLabels = ['暂无数据']; deptValues = [1]; }
+                        var COLORS = ['#165DFF', '#f59e0b', '#10b981', '#8b5cf6', '#0ea5e9', '#ef4444', '#84cc16', '#ec4899'];
+                        if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
+                        chartDeptInstance = new Chart(deptCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: deptLabels,
+                                datasets: [{
+                                    label: '议题数',
+                                    data: deptValues,
+                                    backgroundColor: deptLabels.map(function (_, i) { return COLORS[i % COLORS.length]; }),
+                                    borderColor: deptLabels.map(function (_, i) { return COLORS[i % COLORS.length]; }),
+                                    borderWidth: 1,
+                                    borderRadius: 4,
+                                    barThickness: 'flex',
+                                    maxBarThickness: 28,
+                                    datalabels: {
+                                        anchor: 'end',
+                                        align: 'end',
+                                        formatter: function (val, ctx) {
+                                            var lbl = ctx.chart.data.labels[ctx.dataIndex] || '';
+                                            if (lbl === '暂无数据') return '';
+                                            return val;
+                                        },
+                                        color: '#333',
+                                        font: { size: 11, weight: '600' }
+                                    }
+                                }]
+                            },
+                            options: {
+                                indexAxis: 'y',
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                layout: { padding: { left: 4, right: 24, top: 4, bottom: 4 } },
+                                scales: {
+                                    x: { beginAtZero: true, suggestedMax: (Math.max.apply(null, deptValues) || 10) + 2, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.06)' } },
+                                    y: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0 } }
+                                },
+                                onClick: function (e, els) {
+                                    if (els.length > 0 && deptLabels[els[0].index] !== '暂无数据') {
+                                        var idx = els[0].index;
+                                        var lbl = deptLabels[idx];
+                                        overviewFilter.department = overviewFilter.department === lbl ? null : lbl;
+                                        overviewFilter.form = null;
+                                        overviewFilter.month = null;
+                                        renderOverview();
+                                        renderTable();
+                                    }
+                                },
+                                plugins: {
+                                    legend: { display: false },
+                                    datalabels: { anchor: 'end', align: 10 }
+                                }
+                            }
+                        });
+                    }
+                    if (monthCtx) {
+                        if (monthLabels.length === 0) { monthLabels = ['暂无数据']; monthValues = [1]; monthVals = [null]; }
+                        if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
+                        chartMonthInstance = new Chart(monthCtx, {
+                            type: 'line',
+                            data: {
+                                labels: monthLabels,
+                                datasets: [{
+                                    label: '议题数',
+                                    data: monthValues,
+                                    fill: true,
+                                    backgroundColor: 'rgba(22, 93, 255, 0.35)',
+                                    borderColor: '#165DFF',
+                                    borderWidth: 2,
+                                    tension: 0.3,
+                                    pointBackgroundColor: '#165DFF',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2,
+                                    pointRadius: 4,
+                                    datalabels: {
+                                        anchor: 'end',
+                                        align: 'top',
+                                        formatter: function (val) { return val; },
+                                        color: '#165DFF',
+                                        font: { size: 12, weight: 'bold' }
+                                    }
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                layout: { padding: { top: 20 } },
+                                scales: {
+                                    y: { beginAtZero: true, suggestedMax: (Math.max.apply(null, monthValues) || 10) + 1, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.06)' } },
+                                    x: { grid: { display: false } }
+                                },
+                                onClick: function (e, els) {
+                                    if (els.length > 0 && monthVals[els[0].index] !== null) {
+                                        var idx = els[0].index;
+                                        var monthVal = monthVals[idx];
+                                        overviewFilter.month = overviewFilter.month === monthVal ? null : monthVal;
+                                        overviewFilter.form = null;
+                                        overviewFilter.department = null;
+                                        renderOverview();
+                                        renderTable();
+                                    }
+                                },
+                                plugins: {
+                                    legend: { display: false },
+                                    datalabels: { anchor: 'center', align: 'center' }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            function applyFilter() {
+                var kw = (document.getElementById('search-input').value || '').trim().toLowerCase();
+                var list = topicsData.slice();
+                if (kw) list = list.filter(function (t) {
+                    var s = (t.year || '') + ' ' + (t.month || '') + ' ' + (t.content || '') + ' ' + (t.form || '') + ' ' + (t.department || '');
+                    return s.toLowerCase().indexOf(kw) !== -1;
+                });
+                if (overviewFilter.form) list = list.filter(function (t) { return t.form === overviewFilter.form; });
+                if (overviewFilter.department) list = list.filter(function (t) { return (t.department || '').trim() === overviewFilter.department; });
+                if (overviewFilter.month !== null) list = list.filter(function (t) {
+                    var m = t.month >= 1 && t.month <= 12 ? t.month : 0;
+                    return m === overviewFilter.month;
+                });
+                return list;
+            }
+
+            function sortList(list) {
+                var field = sortConfig.field, type = sortConfig.type;
+                return list.slice().sort(function (a, b) {
+                    var cmp = 0;
+                    if (field === 'year') cmp = type === 'desc' ? (b.year - a.year) : (a.year - b.year);
+                    else if (field === 'month') cmp = type === 'desc' ? ((b.month || 0) - (a.month || 0)) : ((a.month || 0) - (b.month || 0));
+                    else if (field === 'form') cmp = type === 'desc' ? (getFormSortIndex(b.form) - getFormSortIndex(a.form)) : (getFormSortIndex(a.form) - getFormSortIndex(b.form));
+                    else if (field === 'department') {
+                        var idA = getDeptSortId(a.department || ''), idB = getDeptSortId(b.department || '');
+                        cmp = type === 'desc' ? (idB - idA) : (idA - idB);
+                    } else {
+                        cmp = (b.year || 0) - (a.year || 0);
+                    }
+                    if (cmp !== 0) return cmp;
+                    if (field !== 'year') { cmp = (b.year || 0) - (a.year || 0); if (cmp !== 0) return cmp; }
+                    if (field !== 'month') { cmp = ((a.month || 0) - (b.month || 0)); if (cmp !== 0) return cmp; }
+                    if (field !== 'form') { cmp = getFormSortIndex(a.form) - getFormSortIndex(b.form); if (cmp !== 0) return cmp; }
+                    if (field !== 'department') return getDeptSortId(a.department || '') - getDeptSortId(b.department || '');
+                    return (a.department || '').localeCompare(b.department || '');
+                });
+            }
+
+            function formatDateCh(s) {
+                if (!s) return '-';
+                var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+                return m ? m[1] + '年' + parseInt(m[2], 10) + '月' + parseInt(m[3], 10) + '日' : s;
+            }
+
+            function renderTopicRow(t, index, files) {
+                files = files || [];
+                var filesHtml = '';
+                if (files.length > 0) {
+                    files.forEach(function (f) {
+                        var ext = (f.fileType || 'pdf').toUpperCase();
+                        var dateStr = formatDateCh(f.uploadDate || (f.createdAt ? f.createdAt.slice(0, 10) : ''));
+                        var fname = f.title || f.originalName || '未命名';
+                        filesHtml += '<tr><td class="progress-date-col">' + dateStr + '</td><td class="progress-name-col"><i class="fa fa-file-' + (f.fileType === 'pdf' ? 'pdf' : 'word') + '-o text-danger me-1"></i>' + fname + ' <span class="badge bg-secondary">' + ext + '</span></td><td class="progress-op-col">';
+                        filesHtml += '<a href="jiandu-file-detail.html?id=' + f.id + '" target="_blank" class="btn btn-outline-primary btn-sm me-1"><i class="fa fa-eye"></i> 预览</a>';
+                        filesHtml += '<a href="/api/jiandu/topics/files/' + f.id + '/download" class="btn btn-outline-info btn-sm" target="_blank"><i class="fa fa-download"></i> 下载</a>';
+                        if (isAdmin) filesHtml += ' <button class="btn btn-outline-danger btn-sm ms-1 jiandu-file-del-btn" data-id="' + f.id + '"><i class="fa fa-trash"></i> 删除</button>';
+                        filesHtml += '</td></tr>';
+                    });
+                }
+                var uploadBtn = isAdmin ? '<div class="topic-files-upload-wrap"><button class="btn btn-sm btn-primary jiandu-file-upload-btn" data-topic-id="' + t.id + '"><i class="fa fa-upload"></i> 上传资料</button></div>' : '';
+                var filesArea = '<div class="topic-files-area" id="files-area-' + t.id + '"><table class="table table-sm progress-table mb-2"><thead><tr><th class="progress-date-col">日期</th><th class="progress-name-col">文件名</th><th class="progress-op-col">操作</th></tr></thead><tbody>' + filesHtml + '</tbody></table>' + uploadBtn + '</div>';
+
+                var cb = isAdmin ? '<input type="checkbox" class="row-checkbox" data-id="' + t.id + '">' : '';
+                var filesIconTitle = files.length > 0 ? '文件资料（' + files.length + '）' : '文件资料';
+                var hasFilesCls = files.length > 0 ? ' topic-files-has-files' : '';
+                var opFilesBtn = '<button class="btn btn-sm btn-outline-secondary topic-files-toggle-btn' + hasFilesCls + '" data-topic-id="' + t.id + '" title="' + filesIconTitle + '"><i class="fa fa-paperclip"></i></button>';
+                var op = isAdmin ? '<span class="d-inline-flex gap-1 flex-nowrap align-items-center">' +
+                    '<button class="btn btn-sm btn-outline-primary edit-topic-btn" data-id="' + t.id + '" title="编辑"><i class="fa fa-edit"></i></button>' +
+                    '<button class="btn btn-sm btn-outline-danger del-topic-btn" data-id="' + t.id + '" title="删除"><i class="fa fa-trash"></i></button>' +
+                    opFilesBtn + '</span>' : '<span class="d-inline-flex gap-1 flex-nowrap align-items-center">' + opFilesBtn + '</span>';
+                var monthStr = (t.month && t.month >= 1 && t.month <= 12) ? t.month + '月' : '-';
+                return '<tr class="topic-row" data-id="' + t.id + '"><td>' + cb + '</td><td>' + index + '</td><td>' + t.year + '年</td><td>' + monthStr + '</td><td>' + (t.content || '') + '</td><td>' + (t.form || '') + '</td><td>' + (t.department || '') + '</td><td>' + op + '</td></tr>' +
+                    '<tr class="topic-files-row" data-topic-id="' + t.id + '"><td colspan="8" class="p-2 bg-light">' + filesArea + '</td></tr>';
+            }
+
+            function renderTable() {
+                var list = sortList(applyFilter());
+                var tbody = document.getElementById('topic-list');
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">暂无数据</td></tr>';
+                    return;
+                }
+                var html = '';
+                list.forEach(function (t, i) {
+                    var files = topicFilesCache[t.id] || [];
+                    html += renderTopicRow(t, i + 1, files);
+                });
+                tbody.innerHTML = html;
+            }
+
+            function refresh() {
+                Promise.all([loadDepartments(), loadFormSort()]).then(function () {
+                    return loadTopics();
+                }).then(function () {
+                    var year = document.getElementById('year-filter').value || '';
+                    var list = year ? topicsData.filter(function (t) { var y = parseInt(year, 10); return !isNaN(y) && t.year === y; }) : topicsData;
+                    var ids = list.map(function (t) { return t.id; });
+                    var loadFiles = ids.map(function (id) { return loadTopicFiles(id); });
+                    return Promise.all(loadFiles).then(function () {
+                        renderOverview();
+                        renderTable();
+                    });
+                });
+            }
+
+            function initAuth() {
+                var t = getToken();
+                if (!t) {
+                    document.getElementById('user-role').innerHTML = '当前身份：<b>游客（未登录）</b>';
+                    document.getElementById('login-btn').style.display = '';
+                    document.getElementById('logout-btn').style.display = 'none';
+                    document.getElementById('operation-area').style.display = 'none';
+                    document.getElementById('admin-mgmt-btn').style.display = 'none';
+                    refresh();
+                    return;
+                }
+                apiFetch('/api/me').then(function (r) { return r.json(); }).then(function (res) {
+                    if (res.code === 0) {
+                        isAdmin = true;
+                        document.getElementById('user-role').innerHTML = '当前身份：<b>' + (res.data.role === 'super_admin' ? '超级管理员' : '管理员') + '（' + res.data.username + '）</b>';
+                        document.getElementById('login-btn').style.display = 'none';
+                        document.getElementById('logout-btn').style.display = '';
+                        document.getElementById('operation-area').style.display = '';
+                        document.getElementById('admin-mgmt-btn').style.display = res.data.role === 'super_admin' ? '' : 'none';
+                    } else {
+                        clearToken();
+                        isAdmin = false;
+                        document.getElementById('operation-area').style.display = 'none';
+                    }
+                    refresh();
+                }).catch(function () { isAdmin = false; refresh(); });
+            }
+
+            function bindEvents() {
+                document.getElementById('login-btn').addEventListener('click', function () { new bootstrap.Modal(document.getElementById('login-modal')).show(); });
+                document.getElementById('logout-btn').addEventListener('click', function () {
+                    var t = getToken();
+                    if (t) fetch('/api/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + t } }).catch(function () {});
+                    clearToken();
+                    isAdmin = false;
+                    document.getElementById('user-role').innerHTML = '当前身份：<b>游客（未登录）</b>';
+                    document.getElementById('login-btn').style.display = '';
+                    document.getElementById('logout-btn').style.display = 'none';
+                    document.getElementById('operation-area').style.display = 'none';
+                    refresh();
+                    showToast('已退出登录');
+                });
+
+                if (!document.getElementById('login-modal')) {
+                    var loginModal = document.createElement('div');
+                    loginModal.className = 'modal fade';
+                    loginModal.id = 'login-modal';
+                    loginModal.innerHTML = '<div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">管理员登录</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="login-form"><div class="mb-3"><label class="form-label">用户名</label><input type="text" class="form-control" id="login-username"></div><div class="mb-3"><label class="form-label">密码</label><input type="password" class="form-control" id="login-password"></div><div class="mb-3 form-check"><input type="checkbox" class="form-check-input" id="login-remember" checked><label class="form-check-label" for="login-remember">7日内免登录</label></div></form></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button type="button" class="btn btn-primary" id="login-submit">登录</button></div></div></div>';
+                    document.body.appendChild(loginModal);
+                    document.getElementById('login-submit').addEventListener('click', function () {
+                        var u = document.getElementById('login-username').value.trim();
+                        var p = document.getElementById('login-password').value.trim();
+                        var rem = document.getElementById('login-remember').checked;
+                        if (!u || !p) { showToast('请输入用户名和密码'); return; }
+                        fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, password: p, rememberMe: rem }) })
+                            .then(function (r) { return r.json(); })
+                            .then(function (res) {
+                                if (res.code === 0) {
+                                    setToken(res.data.token, rem);
+                                    isAdmin = true;
+                                    bootstrap.Modal.getInstance(document.getElementById('login-modal')).hide();
+                                    initAuth();
+                                    showToast('登录成功');
+                                } else showToast(res.msg);
+                            }).catch(function () { showToast('登录失败'); });
+                    });
+                }
+
+                document.getElementById('year-filter').addEventListener('change', refresh);
+
+                document.getElementById('search-input').addEventListener('input', function () { renderTable(); });
+
+                document.querySelector('.overview-title-toggle').addEventListener('click', function () {
+                    var body = document.getElementById('overview-card-body');
+                    var chevron = document.querySelector('.overview-chevron');
+                    var hidden = body.style.display === 'none';
+                    body.style.display = hidden ? '' : 'none';
+                    chevron.className = hidden ? 'fa fa-chevron-down overview-chevron me-1' : 'fa fa-chevron-right overview-chevron me-1';
+                });
+
+                document.getElementById('sort-year-btn').addEventListener('click', function () {
+                    sortConfig.field = 'year';
+                    sortConfig.type = (sortConfig.field === 'year' && sortConfig.type === 'desc') ? 'asc' : 'desc';
+                    renderTable();
+                });
+                document.getElementById('sort-month-btn').addEventListener('click', function () {
+                    sortConfig.field = 'month';
+                    sortConfig.type = (sortConfig.field === 'month' && sortConfig.type === 'asc') ? 'desc' : 'asc';
+                    renderTable();
+                });
+                document.getElementById('sort-form-btn').addEventListener('click', function () {
+                    sortConfig.field = 'form';
+                    sortConfig.type = (sortConfig.field === 'form' && sortConfig.type === 'desc') ? 'asc' : 'desc';
+                    renderTable();
+                });
+                document.getElementById('sort-dept-btn').addEventListener('click', function () {
+                    sortConfig.field = 'department';
+                    sortConfig.type = (sortConfig.field === 'department' && sortConfig.type === 'desc') ? 'asc' : 'desc';
+                    renderTable();
+                });
+
+                function syncFormSelectOptions() {
+                    var sel = document.querySelector('#topic-form [name="form"]');
+                    if (!sel) return;
+                    var cur = sel.value;
+                    sel.innerHTML = '<option value="">请选择</option>';
+                    formSortOrder.forEach(function (f) { sel.innerHTML += '<option value="' + f + '">' + f + '</option>'; });
+                    if (cur) sel.value = cur;
+                }
+                document.getElementById('btn-add').addEventListener('click', function () {
+                    document.getElementById('topic-modal-title').textContent = '新增议题';
+                    document.getElementById('topic-form').reset();
+                    document.querySelector('#topic-form [name="id"]').value = '';
+                    syncFormSelectOptions();
+                    new bootstrap.Modal(document.getElementById('topic-modal')).show();
+                });
+
+                document.getElementById('topic-save-btn').addEventListener('click', function () {
+                    var form = document.getElementById('topic-form');
+                    var id = form.querySelector('[name="id"]').value;
+                    var monthVal = form.querySelector('[name="month"]').value;
+                    var month = monthVal ? parseInt(monthVal, 10) : 0;
+                    if (month < 1 || month > 12) month = 0;
+                    var body = { year: parseInt(form.querySelector('[name="year"]').value, 10), month: month, content: form.querySelector('[name="content"]').value.trim(), form: form.querySelector('[name="form"]').value, department: form.querySelector('[name="department"]').value.trim() };
+                    if (!body.year || !body.content || !body.form || !body.department) { showToast('请填写完整'); return; }
+                    var url = id ? '/api/jiandu/topics/' + id : '/api/jiandu/topics';
+                    var method = id ? 'PUT' : 'POST';
+                    apiFetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                        .then(function (r) { return r.json(); })
+                        .then(function (res) {
+                            if (res.code === 0) {
+                                bootstrap.Modal.getInstance(document.getElementById('topic-modal')).hide();
+                                showToast(id ? '修改成功' : '新增成功');
+                                refresh();
+                            } else showToast(res.msg);
+                        }).catch(function () { showToast('保存失败'); });
+                });
+
+                document.getElementById('btn-batch-del').addEventListener('click', function () {
+                    var checked = document.querySelectorAll('.row-checkbox:checked');
+                    if (!checked.length) { showToast('请选择要删除的议题'); return; }
+                    if (!confirm('确定删除选中的 ' + checked.length + ' 条吗？')) return;
+                    var ids = Array.prototype.map.call(checked, function (c) { return c.dataset.id; });
+                    var done = 0;
+                    ids.forEach(function (id) {
+                        apiFetch('/api/jiandu/topics/' + id, { method: 'DELETE' }).then(function () { done++; if (done === ids.length) { showToast('已删除'); refresh(); } });
+                    });
+                });
+
+                document.getElementById('download-template-btn').addEventListener('click', function () {
+                    fetch('/api/jiandu/template').then(function (res) {
+                        var ct = res.headers.get('Content-Type') || '';
+                        if (ct.indexOf('json') !== -1 || !res.ok) {
+                            return res.json().then(function (err) { showToast(err.msg || '下载失败'); });
+                        }
+                        return res.blob().then(function (blob) {
+                            var a = document.createElement('a');
+                            a.href = URL.createObjectURL(blob);
+                            a.download = '监督议题导入模板.xlsx';
+                            a.click();
+                            URL.revokeObjectURL(a.href);
+                            showToast('模板已下载');
+                        });
+                    }).catch(function () { showToast('下载失败'); });
+                });
+
+                document.getElementById('btn-upload-excel').addEventListener('click', function () {
+                    var fileInput = document.getElementById('excel-upload');
+                    if (!fileInput || !fileInput.files || !fileInput.files[0]) { showToast('请选择 Excel 文件'); return; }
+                    var file = fileInput.files[0];
+                    function doParse() {
+                        var reader = new FileReader();
+                        reader.onload = function (ev) {
+                            try {
+                                if (typeof XLSX === 'undefined') { showToast('Excel 解析库加载中，请稍后再试'); return; }
+                                var wb = XLSX.read(ev.target.result, { type: 'binary' });
+                                var ws = wb.Sheets[wb.SheetNames[0]];
+                                var rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                                if (!rows || rows.length < 2) { showToast('文件中没有数据行'); return; }
+                                var headers = rows[0];
+                                var dataRows = rows.slice(1);
+                                var objs = dataRows.map(function (row) {
+                                    var o = {};
+                                    headers.forEach(function (h, i) {
+                                        if (h && row[i] !== undefined && row[i] !== null) o[h] = row[i];
+                                    });
+                                    return o;
+                                }).filter(function (o) { return Object.keys(o).length > 0; });
+                                if (objs.length === 0) { showToast('没有可导入的数据'); return; }
+                                apiFetch('/api/jiandu/topics/import', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ rows: objs })
+                                }).then(function (r) { return r.json(); }).then(function (res) {
+                                    if (res.code === 0) {
+                                        showToast('成功导入 ' + res.data.imported + ' 条');
+                                        fileInput.value = '';
+                                        refresh();
+                                    } else showToast(res.msg);
+                                }).catch(function () { showToast('导入失败'); });
+                            } catch (err) { showToast('解析 Excel 失败'); }
+                        };
+                        reader.readAsBinaryString(file);
+                    }
+                    if (typeof XLSX !== 'undefined') { doParse(); return; }
+                    var s = document.createElement('script');
+                    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+                    s.onload = doParse;
+                    s.onerror = function () { showToast('Excel 解析库加载失败'); };
+                    document.body.appendChild(s);
+                });
+
+                document.getElementById('jiandu-backup-btn').addEventListener('click', function () {
+                    apiFetch('/api/jiandu/backup').then(function (r) { return r.json(); }).then(function (res) {
+                        if (res.code === 0) {
+                            var blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+                            var a = document.createElement('a');
+                            a.href = URL.createObjectURL(blob);
+                            a.download = '监督议题备份_' + new Date().toISOString().slice(0, 10) + '.json';
+                            a.click();
+                            URL.revokeObjectURL(a.href);
+                            showToast('备份已下载');
+                        } else showToast(res.msg || '备份失败');
+                    }).catch(function () { showToast('备份失败'); });
+                });
+
+                document.getElementById('jiandu-restore-btn').addEventListener('click', function () {
+                    new bootstrap.Modal(document.getElementById('jiandu-restore-modal')).show();
+                });
+
+                document.getElementById('dept-mgmt-btn').addEventListener('click', function () {
+                    Promise.all([loadDepartments(), loadFormSort()]).then(function () {
+                        var formHtml = '';
+                        formSortOrder.forEach(function (f, i) {
+                            formHtml += '<tr><td>' + (i + 1) + '</td><td>' + f + '</td><td><button class="btn btn-sm btn-outline-secondary form-sort-up" data-idx="' + i + '" ' + (i === 0 ? 'disabled' : '') + '><i class="fa fa-arrow-up"></i></button> <button class="btn btn-sm btn-outline-secondary form-sort-down" data-idx="' + i + '" ' + (i === formSortOrder.length - 1 ? 'disabled' : '') + '><i class="fa fa-arrow-down"></i></button></td></tr>';
+                        });
+                        document.getElementById('form-sort-body').innerHTML = formHtml;
+                        var deptHtml = '';
+                        departmentsData.forEach(function (d) {
+                            deptHtml += '<tr><td>' + (d.id || '-') + '</td><td>' + (d.name || '') + '</td><td><button class="btn btn-sm btn-outline-primary dept-edit-btn" data-id="' + d.id + '" data-name="' + (d.name || '').replace(/"/g, '&quot;') + '">编辑</button> <button class="btn btn-sm btn-outline-danger dept-del-btn" data-id="' + d.id + '" data-name="' + (d.name || '').replace(/"/g, '&quot;') + '">删除</button></td></tr>';
+                        });
+                        document.getElementById('dept-list-body').innerHTML = deptHtml || '<tr><td colspan="3">暂无部门，可添加</td></tr>';
+                        new bootstrap.Modal(document.getElementById('dept-modal')).show();
+                    }).catch(function () { showToast('加载失败'); });
+                });
+
+                document.getElementById('form-sort-body').addEventListener('click', function (e) {
+                    var up = e.target.closest('.form-sort-up');
+                    var down = e.target.closest('.form-sort-down');
+                    if (!up && !down) return;
+                    var idx = parseInt((up || down).dataset.idx, 10);
+                    var arr = formSortOrder.slice();
+                    var newIdx = down ? idx + 1 : idx - 1;
+                    if (newIdx < 0 || newIdx >= arr.length) return;
+                    var tmp = arr[idx];
+                    arr[idx] = arr[newIdx];
+                    arr[newIdx] = tmp;
+                    apiFetch('/api/form-sort', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ order: arr }) })
+                        .then(function (r) { return r.json(); })
+                        .then(function (res) {
+                            if (res.code === 0) {
+                                formSortOrder = arr;
+                                showToast('监督方式排序已更新');
+                                document.getElementById('dept-mgmt-btn').click();
+                                renderTable();
+                            } else showToast(res.msg);
+                        }).catch(function () { showToast('保存失败'); });
+                });
+
+                document.getElementById('dept-list-body').addEventListener('click', function (e) {
+                    var t = e.target.closest('.dept-edit-btn');
+                    if (t) {
+                        document.getElementById('dept-form-title').textContent = '编辑部门';
+                        document.getElementById('dept-form-id').value = t.dataset.id;
+                        document.getElementById('dept-form-sortId').value = t.dataset.id;
+                        document.getElementById('dept-form-name').value = t.dataset.name || '';
+                        new bootstrap.Modal(document.getElementById('dept-form-modal')).show();
+                        return;
+                    }
+                    t = e.target.closest('.dept-del-btn');
+                    if (t) {
+                        if (!confirm('确定删除部门「' + (t.dataset.name || '') + '」？若该部门下有监督议题将无法删除。')) return;
+                        apiFetch('/api/departments/' + t.dataset.id, { method: 'DELETE' }).then(function (r) { return r.json(); }).then(function (res) {
+                            if (res.code === 0) {
+                                showToast('已删除');
+                                document.getElementById('dept-mgmt-btn').click();
+                                loadDepartments().then(function () { refresh(); });
+                            } else showToast(res.msg);
+                        }).catch(function () { showToast('删除失败'); });
+                    }
+                });
+
+                document.getElementById('dept-add-btn').addEventListener('click', function () {
+                    document.getElementById('dept-form-title').textContent = '添加部门';
+                    document.getElementById('dept-form-id').value = '';
+                    document.getElementById('dept-form-sortId').value = '';
+                    document.getElementById('dept-form-name').value = '';
+                    new bootstrap.Modal(document.getElementById('dept-form-modal')).show();
+                });
+
+                document.getElementById('dept-form-save-btn').addEventListener('click', function () {
+                    var id = document.getElementById('dept-form-id').value;
+                    var sortId = document.getElementById('dept-form-sortId').value.trim();
+                    var name = document.getElementById('dept-form-name').value.trim();
+                    if (!name) { showToast('部门名称不能为空'); return; }
+                    var body = { name: name };
+                    if (sortId) body.id = parseInt(sortId, 10);
+                    var url = id ? '/api/departments/' + id : '/api/departments';
+                    var method = id ? 'PUT' : 'POST';
+                    var reqBody = id ? { id: sortId ? parseInt(sortId, 10) : undefined, name: name } : body;
+                    apiFetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(reqBody)
+                    }).then(function (r) { return r.json(); }).then(function (res) {
+                        if (res.code === 0) {
+                            bootstrap.Modal.getInstance(document.getElementById('dept-form-modal')).hide();
+                            showToast('保存成功');
+                            document.getElementById('dept-mgmt-btn').click();
+                            loadDepartments().then(function () { refresh(); });
+                        } else showToast(res.msg);
+                    }).catch(function () { showToast('保存失败'); });
+                });
+
+                document.getElementById('jiandu-do-restore-btn').addEventListener('click', function () {
+                    var fileInput = document.getElementById('jiandu-restore-file');
+                    if (!fileInput || !fileInput.files || !fileInput.files[0]) { showToast('请选择备份文件'); return; }
+                    var fr = new FileReader();
+                    fr.onload = function () {
+                        try {
+                            var data = JSON.parse(fr.result);
+                            var arr = Array.isArray(data) ? data : (data.data || data.items || []);
+                            apiFetch('/api/jiandu/restore', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ data: arr })
+                            }).then(function (r) { return r.json(); }).then(function (res) {
+                                if (res.code === 0) {
+                                    bootstrap.Modal.getInstance(document.getElementById('jiandu-restore-modal')).hide();
+                                    fileInput.value = '';
+                                    refresh();
+                                    showToast('数据恢复成功');
+                                } else showToast(res.msg || '恢复失败');
+                            }).catch(function () { showToast('恢复失败'); });
+                        } catch (e) { showToast('文件格式错误'); }
+                    };
+                    fr.readAsText(fileInput.files[0]);
+                });
+
+                if (document.getElementById('select-all')) {
+                    document.getElementById('select-all').addEventListener('change', function () {
+                        document.querySelectorAll('.row-checkbox').forEach(function (cb) { cb.checked = document.getElementById('select-all').checked; });
+                    });
+                }
+
+                document.getElementById('topic-list').addEventListener('click', function (e) {
+                    var editBtn = e.target.closest('.edit-topic-btn');
+                    var delBtn = e.target.closest('.del-topic-btn');
+                    var toggleBtn = e.target.closest('.topic-files-toggle-btn') || e.target.closest('.topic-files-toggle');
+                    var uploadBtn = e.target.closest('.jiandu-file-upload-btn');
+                    var fileDelBtn = e.target.closest('.jiandu-file-del-btn');
+
+                    if (editBtn && isAdmin) {
+                        var id = editBtn.dataset.id;
+                        var t = topicsData.find(function (x) { return String(x.id) === id; });
+                        if (t) {
+                            syncFormSelectOptions();
+                            document.getElementById('topic-modal-title').textContent = '编辑议题';
+                            document.querySelector('#topic-form [name="id"]').value = t.id;
+                            document.querySelector('#topic-form [name="year"]').value = t.year;
+                            document.querySelector('#topic-form [name="month"]').value = (t.month >= 1 && t.month <= 12) ? t.month : '';
+                            document.querySelector('#topic-form [name="content"]').value = t.content || '';
+                            document.querySelector('#topic-form [name="form"]').value = t.form || '';
+                            document.querySelector('#topic-form [name="department"]').value = t.department || '';
+                            new bootstrap.Modal(document.getElementById('topic-modal')).show();
+                        }
+                    }
+                    if (delBtn && isAdmin) {
+                        if (!confirm('确定删除该议题吗？')) return;
+                        apiFetch('/api/jiandu/topics/' + delBtn.dataset.id, { method: 'DELETE' }).then(function () { showToast('已删除'); refresh(); });
+                    }
+                    if (toggleBtn) {
+                        var tid = toggleBtn.dataset.topicId;
+                        var area = document.getElementById('files-area-' + tid);
+                        var btnEl = toggleBtn.closest('.topic-files-toggle-btn');
+                        var chevron = toggleBtn.querySelector && toggleBtn.querySelector('.topic-chevron');
+                        if (area) {
+                            var show = !area.classList.contains('show');
+                            area.classList.toggle('show', show);
+                            if (btnEl) btnEl.classList.toggle('active', show);
+                            else if (chevron) chevron.className = show ? 'fa fa-chevron-down topic-chevron me-1' : 'fa fa-chevron-right topic-chevron me-1';
+                        }
+                    }
+                    if (uploadBtn && isAdmin) {
+                        document.getElementById('file-upload-topic-id').value = uploadBtn.dataset.topicId;
+                        document.getElementById('file-upload-date').value = new Date().toISOString().slice(0, 10);
+                        document.getElementById('file-upload-title').value = '';
+                        document.getElementById('file-upload-input').value = '';
+                        new bootstrap.Modal(document.getElementById('file-upload-modal')).show();
+                    }
+                    if (fileDelBtn && isAdmin) {
+                        if (!confirm('确定删除该文件吗？')) return;
+                        apiFetch('/api/jiandu/topics/files/' + fileDelBtn.dataset.id, { method: 'DELETE' })
+                            .then(function (r) { return r.json(); })
+                            .then(function (res) {
+                                if (res.code === 0) { showToast('已删除'); refresh(); } else showToast(res.msg);
+                            });
+                    }
+                });
+
+                document.getElementById('file-upload-submit').addEventListener('click', function () {
+                    var topicId = document.getElementById('file-upload-topic-id').value;
+                    var fileInput = document.getElementById('file-upload-input');
+                    if (!fileInput.files || !fileInput.files[0]) { showToast('请选择文件'); return; }
+                    var fd = new FormData();
+                    fd.append('file', fileInput.files[0]);
+                    fd.append('uploadDate', document.getElementById('file-upload-date').value || new Date().toISOString().slice(0, 10));
+                    fd.append('title', document.getElementById('file-upload-title').value.trim());
+                    apiFetch('/api/jiandu/topics/' + topicId + '/files/upload', { method: 'POST', body: fd })
+                        .then(function (r) { return r.json(); })
+                        .then(function (res) {
+                            if (res.code === 0) {
+                                bootstrap.Modal.getInstance(document.getElementById('file-upload-modal')).hide();
+                                showToast('上传成功');
+                                refresh();
+                            } else showToast(res.msg);
+                        });
+                });
+            }
+
+            function updateYearOptions() {
+                var years = [];
+                topicsData.forEach(function (t) { if (t.year && years.indexOf(t.year) === -1) years.push(t.year); });
+                years.sort(function (a, b) { return b - a; });
+                var sel = document.getElementById('year-filter');
+                var cur = sel.value;
+                sel.innerHTML = '<option value="">全部年度</option>' + years.map(function (y) { return '<option value="' + y + '">' + y + '年度</option>'; }).join('');
+                if (cur) sel.value = cur;
+                else if (years.length > 0) sel.value = years[0];
+            }
+
+            loadDepartments().then(function () {
+                loadTopics().then(function () {
+                    updateYearOptions();
+                    var list = document.getElementById('year-filter').value ? topicsData.filter(function (t) { var y = parseInt(document.getElementById('year-filter').value, 10); return !isNaN(y) && t.year === y; }) : topicsData;
+                    return Promise.all(list.map(function (t) { return loadTopicFiles(t.id); }));
+                }).then(function () {
+                    renderOverview();
+                    renderTable();
+                    bindEvents();
+                    initAuth();
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

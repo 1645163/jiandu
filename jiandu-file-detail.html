@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>监督议题文件资料</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .detail-header { text-align: center; padding: 24px 0; border-bottom: 1px solid #e9ecef; }
+        .detail-title { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        .detail-meta { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; margin-top: 16px; color: #6c757d; font-size: 14px; }
+        .preview-toolbar { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #f8f9fa; border-radius: 8px 8px 0 0; flex-wrap: wrap; }
+        .preview-toolbar .btn-download { margin-left: auto; }
+        .preview-toolbar .page-info { font-size: 13px; color: #6c757d; }
+        .preview-container { border: 1px solid #dee2e6; border-radius: 0 0 8px 8px; overflow: auto; height: 82vh; min-height: 600px; background: #fff; }
+        .preview-pdf { padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+        .preview-pdf canvas { max-width: 100%; height: auto; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+        .preview-iframe { width: 100%; height: 100%; min-height: 500px; border: none; display: block; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">市人大常委会监督协调处 <span class="navbar-version">V1.0</span></a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active" href="index.html">监督议题</a></li>
+                    <li class="nav-item"><a class="nav-link" href="pishi.html">批示督办</a></li>
+                    <li class="nav-item"><a class="nav-link" href="minsheng.html">民生实事</a></li>
+                    <li class="nav-item"><a class="nav-link" href="meiyue.html">每月工作</a></li>
+                    <li class="nav-item"><a class="nav-link" href="meizhou.html">每周工作</a></li>
+                    <li class="nav-item"><a class="nav-link" href="falv.html">法律法规</a></li>
+                    <li class="nav-item"><a class="nav-link" href="jihua.html">工作计划</a></li>
+                </ul>
+                <a class="nav-link text-white" href="index.html"><i class="fa fa-arrow-left"></i> 返回监督议题</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4 mb-5 pb-4">
+        <div id="loading" class="text-center py-5">加载中...</div>
+        <div id="content" style="display: none;">
+            <div class="detail-header">
+                <h1 class="detail-title" id="doc-title"></h1>
+                <div class="detail-meta" id="doc-meta"></div>
+            </div>
+            <div class="card mt-4">
+                <div class="preview-toolbar">
+                    <span class="page-info" id="page-info"></span>
+                    <button class="btn btn-primary btn-sm btn-download" id="btn-download"><i class="fa fa-download"></i> 下载</button>
+                </div>
+                <div class="preview-container" id="preview-container">
+                    <div id="preview-pdf" class="preview-pdf" style="display: none;"></div>
+                    <iframe id="preview-iframe" class="preview-iframe" style="display: none;"></iframe>
+                </div>
+            </div>
+        </div>
+        <div id="error" class="text-center py-5 text-danger" style="display: none;">加载失败</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        (function () {
+            var id = new URLSearchParams(window.location.search).get('id');
+            var doc = null;
+
+            function loadDoc() {
+                if (!id) { showError(); return; }
+                fetch('/api/jiandu/topics/files/' + id).then(function (r) { return r.json(); }).then(function (res) {
+                    if (res.code === 0 && res.data) {
+                        doc = res.data;
+                        document.getElementById('doc-title').textContent = doc.title || doc.originalName || '未命名';
+                        document.getElementById('doc-meta').innerHTML = '<span>上传时间: ' + (doc.createdAt ? doc.createdAt.slice(0, 10) : '-') + '</span>';
+                        loadPreview();
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('content').style.display = 'block';
+                    } else showError();
+                }).catch(showError);
+            }
+
+            function showError() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }
+
+            function loadPreview() {
+                var pdfDiv = document.getElementById('preview-pdf');
+                var iframe = document.getElementById('preview-iframe');
+                var pageInfo = document.getElementById('page-info');
+                if (doc.fileType === 'pdf') {
+                    iframe.style.display = 'none';
+                    pdfDiv.style.display = 'flex';
+                    pdfDiv.innerHTML = '<p class="text-muted">加载 PDF 中...</p>';
+                    if (typeof pdfjsLib === 'undefined') {
+                        pdfDiv.innerHTML = '<p class="text-danger">PDF 预览库加载失败，请<a href="/api/jiandu/topics/files/' + id + '/download">下载</a>后查看</p>';
+                        return;
+                    }
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    fetch('/api/jiandu/topics/files/' + id + '/file').then(function (r) { return r.arrayBuffer(); })
+                        .then(function (buf) { return pdfjsLib.getDocument({ data: buf }).promise; })
+                        .then(function (pdf) {
+                            pageInfo.textContent = '共 ' + pdf.numPages + ' 页';
+                            pdfDiv.innerHTML = '';
+                            for (var i = 1; i <= pdf.numPages; i++) {
+                                (function (p) {
+                                    pdf.getPage(p).then(function (page) {
+                                        var vp = page.getViewport({ scale: 1.5 });
+                                        var canvas = document.createElement('canvas');
+                                        canvas.height = vp.height;
+                                        canvas.width = vp.width;
+                                        canvas.style.maxWidth = '100%';
+                                        page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise.then(function () {
+                                            pdfDiv.appendChild(canvas);
+                                        });
+                                    });
+                                })(i);
+                            }
+                        }).catch(function () {
+                            pdfDiv.innerHTML = '<p class="text-danger">预览失败，请<a href="/api/jiandu/topics/files/' + id + '/download">下载</a>后查看</p>';
+                        });
+                } else {
+                    pdfDiv.style.display = 'none';
+                    pageInfo.textContent = 'Word 文档预览';
+                    fetch('/api/jiandu/topics/files/' + id + '/preview').then(function (r) { return r.text(); })
+                        .then(function (html) {
+                            iframe.srcdoc = html;
+                            iframe.style.display = 'block';
+                        })
+                        .catch(function () {
+                            iframe.srcdoc = '<p class="p-4">预览失败，请<a href="/api/jiandu/topics/files/' + id + '/download" target="_blank">下载</a>后查看</p>';
+                            iframe.style.display = 'block';
+                        });
+                }
+            }
+
+            document.getElementById('btn-download').addEventListener('click', function () {
+                window.location.href = '/api/jiandu/topics/files/' + id + '/download';
+            });
+
+            loadDoc();
+        })();
+    </script>
+</body>
+</html>

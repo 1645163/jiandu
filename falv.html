@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>法律法规</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .navbar { background: linear-gradient(135deg, #165DFF 0%, #0d3ba8 100%); padding: 0.5rem 1rem; }
+        .navbar-brand { font-size: 16px; }
+        .nav-link { padding: 0.5rem 0.75rem; }
+        .navbar-nav { align-items: center; }
+        .navbar-nav .btn { margin: 5px 0 !important; width: 100%; }
+        @media (min-width: 992px) { .navbar-brand { font-size: 18px; } .navbar-nav .btn { width: auto; margin: 0 0 0 10px !important; } }
+        .header-filter { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .header-toolbar { flex-wrap: nowrap; overflow-x: auto; }
+        .sort-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .sort-bar .sort-btn {
+            background: transparent; border: 1px solid #dee2e6; border-radius: 4px;
+            padding: 4px 10px; font-size: 13px; cursor: pointer; color: #495057;
+        }
+        .sort-bar .sort-btn:hover { background: #f8f9fa; }
+        .sort-bar .sort-btn i { margin-left: 4px; opacity: 0.7; }
+        .batch-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .falv-list { list-style: none; padding: 0; margin: 0; }
+        .falv-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 14px 16px; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 10px;
+            background: #fff; cursor: pointer; transition: background 0.2s;
+        }
+        .falv-item:hover { background: #f8fafc; }
+        .falv-item .falv-check { flex-shrink: 0; margin-top: 4px; }
+        .falv-item .falv-content { flex: 1; min-width: 0; }
+        .falv-item .falv-actions { flex-shrink: 0; display: flex; gap: 6px; align-items: center; }
+        .falv-item .falv-actions .edit-btn,
+        .falv-item .falv-actions .del-btn { padding: 4px 8px; font-size: 12px; }
+        .falv-item .falv-title { font-weight: bold; font-size: 16px; color: #1a1a1a; margin-bottom: 6px; }
+        .falv-item .falv-meta { font-size: 12px; color: #6c757d; line-height: 1.6; }
+        .falv-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 8px; }
+        .falv-tag.valid { background: #28a745; color: #fff; }
+        .falv-tag.pending { background: #fd7e14; color: #fff; }
+        .falv-actions a.btn { text-decoration: none; }
+        .sidebar-section { margin-bottom: 24px; }
+        .sidebar-section h6 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #333; }
+        .sidebar-section .form-check { margin-bottom: 8px; font-size: 13px; }
+        .sidebar-section .form-check-input { margin-top: 0.25rem; }
+        .operation-btn { margin: 5px; }
+        .btn-group-inline { display: inline-flex; align-items: flex-start; gap: 5px; flex-wrap: wrap; }
+        #operation-area .btn { min-height: 44px; padding: 0.5rem 1rem; font-size: 14px; }
+        #operation-area .form-control { min-height: 44px; font-size: 14px; }
+        @media (max-width: 767px) {
+            .btn-group-inline { flex-direction: column; width: 100%; }
+            .card-header.d-flex { flex-direction: column; align-items: flex-start !important; gap: 10px; }
+        }
+        @media (max-width: 991px) {
+            .sort-bar, .batch-bar { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">市人大常委会监督协调处 <span class="navbar-version">V1.0</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="index.html">监督议题</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="pishi.html">批示督办</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="minsheng.html">民生实事</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meiyue.html">每月工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meizhou.html">每周工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link active" href="falv.html">法律法规</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">工作计划</a></li>
+                </ul>
+                <div class="navbar-nav ms-auto">
+                    <span class="nav-link text-white" id="user-role">当前身份：<b>游客（未登录）</b></span>
+                    <button class="btn btn-outline-light ms-2" id="admin-mgmt-btn" style="display: none;"><i class="fa fa-users"></i> 管理员管理</button>
+                    <button class="btn btn-outline-light ms-2" id="login-btn">管理员登录</button>
+                    <button class="btn btn-outline-light ms-2" id="logout-btn" style="display: none;">退出登录</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5 pb-4">
+        <div class="card" id="operation-area" style="display: none;">
+            <div class="card-header"><h5 class="mb-0">数据操作</h5></div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <div class="input-group w-auto flex-grow-1">
+                        <input type="file" class="form-control" id="file-upload" accept=".pdf,.doc,.docx">
+                        <button class="btn btn-primary" id="btn-upload"><i class="fa fa-upload"></i> 上传文档</button>
+                    </div>
+                    <button class="btn btn-danger operation-btn" id="btn-batch-del"><i class="fa fa-trash"></i> 批量删除</button>
+                    <div class="btn-group-inline">
+                        <button class="btn btn-secondary operation-btn" id="backup-btn"><i class="fa fa-database"></i> 备份数据</button>
+                        <button class="btn btn-dark operation-btn" id="restore-btn"><i class="fa fa-recycle"></i> 数据恢复</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="mb-0">监督相关的法律法规文件</h5>
+                        <div class="d-flex flex-nowrap align-items-center gap-3 header-toolbar">
+                            <div class="header-filter d-flex align-items-center gap-1"><label class="text-muted small mb-0"><i class="fa fa-filter"></i> 法律法规分类</label><select class="form-select form-select-sm" id="filter-category" style="width: auto; min-width: 120px;"></select></div>
+                            <div class="header-filter d-flex align-items-center gap-1"><label class="text-muted small mb-0"><i class="fa fa-building"></i> 制定机关</label><select class="form-select form-select-sm" id="filter-authority" style="width: auto; min-width: 160px;"></select></div>
+                            <div class="input-group flex-shrink-0" style="min-width: 160px; width: 180px;">
+                                <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                <input type="text" class="form-control" id="search-input" placeholder="模糊搜索">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="sort-bar">
+                            <span>排序:</span>
+                            <button class="sort-btn" data-field="default">默认排序</button>
+                            <button class="sort-btn" data-field="category">法律法规分类 <i class="fa fa-sort"></i></button>
+                            <button class="sort-btn" data-field="issuingAuthority">制定机关 <i class="fa fa-sort"></i></button>
+                            <button class="sort-btn" data-field="validity">时效性 <i class="fa fa-sort"></i></button>
+                            <button class="sort-btn" data-field="publicationDate">公布日期 <i class="fa fa-sort"></i></button>
+                            <button class="sort-btn" data-field="effectiveDate">施行日期 <i class="fa fa-sort"></i></button>
+                        </div>
+                        <div class="batch-bar" id="batch-bar">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="select-all">
+                                <label class="form-check-label" for="select-all">全选</label>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" id="btn-batch-download"><i class="fa fa-download"></i> 批量下载文件</button>
+                            <button class="btn btn-sm btn-outline-secondary" id="btn-batch-export"><i class="fa fa-list"></i> 批量导出文件目录</button>
+                        </div>
+                        <ul class="falv-list" id="falv-list"></ul>
+                        <div id="empty-tip" class="text-muted text-center py-5" style="display: none;">暂无数据，管理员可上传 Word 或 PDF 文档</div>
+                    </div>
+                </div>
+    </div>
+
+    <div id="toast-notice" class="toast-notice"></div>
+
+    <div class="modal fade" id="upload-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">上传法律法规文档</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="upload-form">
+                        <div class="mb-3">
+                            <label class="form-label">法规名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" required placeholder="如：中华人民共和国国家通用语言文字法">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">法律法规分类</label>
+                                <select class="form-select" name="category">
+                                    <option value="宪法">宪法</option>
+                                    <option value="法律" selected>法律</option>
+                                    <option value="行政法规">行政法规</option>
+                                    <option value="监察法规">监察法规</option>
+                                    <option value="地方法规">地方法规</option>
+                                    <option value="司法解释">司法解释</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">制定机关</label>
+                                <select class="form-select" name="issuingAuthority">
+                                    <option value="">请选择</option>
+                                    <option value="全国人大及其常委会">全国人大及其常委会</option>
+                                    <option value="国务院">国务院</option>
+                                    <option value="国家监察委员会">国家监察委员会</option>
+                                    <option value="最高人民法院">最高人民法院</option>
+                                    <option value="最高人民检察院">最高人民检察院</option>
+                                    <option value="大连市人大及其常委会">大连市人大及其常委会</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">公布日期</label>
+                                <input type="date" class="form-control" name="publicationDate">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">施行日期</label>
+                                <input type="date" class="form-control" name="effectiveDate">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">选择文件 <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="file" accept=".pdf,.doc,.docx" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="btn-submit-upload"><i class="fa fa-upload"></i> 上传</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="edit-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">修改法律法规</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-form">
+                        <input type="hidden" name="id" id="edit-id">
+                        <div class="mb-3">
+                            <label class="form-label">法规名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">法律法规分类</label>
+                                <select class="form-select" name="category" id="edit-category">
+                                    <option value="宪法">宪法</option>
+                                    <option value="法律" selected>法律</option>
+                                    <option value="行政法规">行政法规</option>
+                                    <option value="监察法规">监察法规</option>
+                                    <option value="地方法规">地方法规</option>
+                                    <option value="司法解释">司法解释</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">制定机关</label>
+                                <select class="form-select" name="issuingAuthority" id="edit-issuingAuthority">
+                                    <option value="">请选择</option>
+                                    <option value="全国人大及其常委会">全国人大及其常委会</option>
+                                    <option value="国务院">国务院</option>
+                                    <option value="国家监察委员会">国家监察委员会</option>
+                                    <option value="最高人民法院">最高人民法院</option>
+                                    <option value="最高人民检察院">最高人民检察院</option>
+                                    <option value="大连市人大及其常委会">大连市人大及其常委会</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">公布日期</label>
+                                <input type="date" class="form-control" name="publicationDate" id="edit-publicationDate">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">施行日期</label>
+                                <input type="date" class="form-control" name="effectiveDate" id="edit-effectiveDate">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">重新上传文件</label>
+                            <input type="file" class="form-control" id="edit-file" accept=".pdf,.doc,.docx">
+                            <div class="form-text">选择新文件将替换原有文件，不选则保留原文件</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="btn-submit-edit"><i class="fa fa-save"></i> 保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="restore-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">数据恢复</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">选择备份文件（JSON 格式）</label>
+                        <input type="file" class="form-control" id="restore-file" accept=".json">
+                    </div>
+                    <p class="text-muted small mb-0">恢复后将覆盖当前全部数据。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="do-restore-btn">确认恢复</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="login-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">管理员登录</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="login-form">
+                        <div class="mb-3">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="rememberMe" id="remember-me">
+                            <label class="form-check-label" for="remember-me">7天内免登录</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">登录</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script>
+        (function () {
+            var falvList = [];
+            var sortConfig = { field: 'default', type: 'desc' };
+            var filterCategory = '';
+            var filterAuthority = '';
+            var isAdmin = false;
+            var DOM = {
+                list: document.getElementById('falv-list'),
+                searchInput: document.getElementById('search-input'),
+                selectAll: document.getElementById('select-all'),
+                emptyTip: document.getElementById('empty-tip'),
+                operationArea: document.getElementById('operation-area'),
+                filterCategory: document.getElementById('filter-category'),
+                filterAuthority: document.getElementById('filter-authority')
+            };
+
+            function getToken() {
+                var expiry = localStorage.getItem('tokenExpiry');
+                if (localStorage.getItem('token') && expiry && Date.now() > parseInt(expiry, 10)) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('tokenExpiry');
+                }
+                return localStorage.getItem('token') || sessionStorage.getItem('token');
+            }
+            function setToken(token, remember) {
+                if (remember) {
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('tokenExpiry', String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+                    sessionStorage.removeItem('token');
+                } else {
+                    sessionStorage.setItem('token', token);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('tokenExpiry');
+                }
+            }
+            function clearToken() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('tokenExpiry');
+                sessionStorage.removeItem('token');
+            }
+            function apiFetch(url, options) {
+                options = options || {};
+                var token = getToken();
+                var headers = options.headers || {};
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                options.headers = headers;
+                return fetch(url, options).then(function (res) {
+                    if (res.status === 401) {
+                        var hadToken = !!token;
+                        clearToken();
+                        isAdmin = false;
+                        if (DOM.operationArea) DOM.operationArea.style.display = 'none';
+                        document.getElementById('user-role').innerHTML = '当前身份：<b>游客（未登录）</b>';
+                        document.getElementById('login-btn').style.display = '';
+                        document.getElementById('logout-btn').style.display = 'none';
+                        document.getElementById('admin-mgmt-btn').style.display = 'none';
+                        if (hadToken) showToast('您已被强制下线，请重新登录');
+                        throw new Error('UNAUTHORIZED');
+                    }
+                    return res;
+                });
+            }
+            function showToast(msg) {
+                var el = document.getElementById('toast-notice');
+                el.textContent = msg;
+                el.classList.add('show');
+                setTimeout(function () { el.classList.remove('show'); }, 2500);
+            }
+            function debounce(fn, ms) {
+                var t;
+                return function () { clearTimeout(t); t = setTimeout(function () { fn.apply(this, arguments); }, ms); };
+            }
+
+            var categories = ['宪法', '法律', '行政法规', '监察法规', '地方法规', '司法解释'];
+            var authorities = ['全国人大及其常委会', '国务院', '国家监察委员会', '最高人民法院', '最高人民检察院', '大连市人大及其常委会'];
+
+            function renderFilters() {
+                DOM.filterCategory.innerHTML = '<option value="">全部分类</option>' + categories.map(function (c) { return '<option value="' + c + '"' + (filterCategory === c ? ' selected' : '') + '>' + c + '</option>'; }).join('');
+                DOM.filterAuthority.innerHTML = '<option value="">全部机关</option>' + authorities.map(function (a) { return '<option value="' + a + '"' + (filterAuthority === a ? ' selected' : '') + '>' + a + '</option>'; }).join('');
+                DOM.filterCategory.onchange = function () {
+                    filterCategory = DOM.filterCategory.value || '';
+                    applyFilterAndRender();
+                };
+                DOM.filterAuthority.onchange = function () {
+                    filterAuthority = DOM.filterAuthority.value || '';
+                    applyFilterAndRender();
+                };
+            }
+
+            function filterBySearch(list) {
+                var kw = (DOM.searchInput && DOM.searchInput.value) ? DOM.searchInput.value.trim().toLowerCase() : '';
+                if (!kw) return list;
+                return list.filter(function (p) {
+                    var s = (p.name || '') + ' ' + (p.category || '') + ' ' + (p.issuingAuthority || '') + ' ' + (p.publicationDate || '') + ' ' + (p.effectiveDate || '');
+                    return s.toLowerCase().indexOf(kw) !== -1;
+                });
+            }
+
+            function sortList(list) {
+                if (!list || !list.length) return list;
+                var field = sortConfig.field;
+                var desc = sortConfig.type === 'desc';
+                var order = { '有效': 1, '尚未生效': 0 };
+                return list.slice().sort(function (a, b) {
+                    if (field === 'default') return (b.id || 0) - (a.id || 0);
+                    var va = a[field] || '';
+                    var vb = b[field] || '';
+                    if (field === 'validity') {
+                        va = order[va] !== undefined ? order[va] : -1;
+                        vb = order[vb] !== undefined ? order[vb] : -1;
+                        return desc ? vb - va : va - vb;
+                    }
+                    var cmp = String(va).localeCompare(String(vb));
+                    return desc ? -cmp : cmp;
+                });
+            }
+
+            function applyFilterAndRender() {
+                var list = falvList;
+                if (filterCategory) list = list.filter(function (p) { return p.category === filterCategory; });
+                if (filterAuthority) list = list.filter(function (p) { return p.issuingAuthority === filterAuthority; });
+                list = filterBySearch(list);
+                list = sortList(list);
+                renderList(list);
+            }
+
+            function renderList(list) {
+                if (!list || !list.length) {
+                    DOM.list.innerHTML = '';
+                    DOM.emptyTip.style.display = 'block';
+                    return;
+                }
+                DOM.emptyTip.style.display = 'none';
+                var html = '';
+                list.forEach(function (p) {
+                    var tagClass = (p.validity || '').indexOf('尚未') !== -1 ? 'pending' : 'valid';
+                    var tagText = p.validity || '有效';
+                    var meta = [
+                        p.publicationDate ? '公布日期: ' + p.publicationDate : '',
+                        p.effectiveDate ? '施行日期: ' + p.effectiveDate : '',
+                        p.category || '',
+                        p.issuingAuthority ? (p.issuingAuthority.length > 12 ? p.issuingAuthority.slice(0, 12) + '…' : p.issuingAuthority) : ''
+                    ].filter(Boolean).join('  |  ');
+                    html += '<li class="falv-item" data-id="' + p.id + '">';
+                    html += '<input type="checkbox" class="form-check-input falv-check" data-id="' + p.id + '">';
+                    html += '<div class="falv-content"><span class="falv-title">' + (p.name || '未命名') + '<span class="falv-tag ' + tagClass + '">' + tagText + '</span></span>';
+                    html += '<div class="falv-meta">' + (meta || '暂无元数据') + '</div></div>';
+                    html += '<div class="falv-actions"><a href="/api/falv/download/' + p.id + '" class="btn btn-success btn-sm btn-download" data-id="' + p.id + '" target="_blank" title="下载"><i class="fa fa-download"></i> 下载</a>';
+                    if (isAdmin) {
+                        html += '<button class="btn btn-sm btn-outline-primary edit-btn" data-id="' + p.id + '"><i class="fa fa-edit"></i> 编辑</button>';
+                        html += '<button class="btn btn-sm btn-outline-danger del-btn" data-id="' + p.id + '"><i class="fa fa-trash"></i> 删除</button>';
+                    }
+                    html += '</div></li>';
+                });
+                DOM.list.innerHTML = html;
+                DOM.list.querySelectorAll('.falv-item').forEach(function (el) {
+                    el.addEventListener('click', function (e) {
+                        if (e.target.type === 'checkbox' || e.target.closest('.falv-actions')) return;
+                        var id = el.dataset.id;
+                        if (id) window.location.href = 'falv-detail.html?id=' + id;
+                    });
+                });
+                DOM.list.querySelectorAll('.falv-check').forEach(function (cb) {
+                    cb.addEventListener('click', function (e) { e.stopPropagation(); });
+                });
+                DOM.list.querySelectorAll('.edit-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) { e.stopPropagation(); openEditModal(btn.dataset.id); });
+                });
+                DOM.list.querySelectorAll('.del-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) { e.stopPropagation(); doDelete(btn.dataset.id); });
+                });
+            }
+
+            function openEditModal(id) {
+                var p = falvList.find(function (x) { return String(x.id) === String(id); });
+                if (!p) return;
+                document.getElementById('edit-id').value = p.id;
+                document.querySelector('#edit-form [name="name"]').value = p.name || '';
+                document.getElementById('edit-category').value = p.category || '法律';
+                document.getElementById('edit-issuingAuthority').value = p.issuingAuthority || '';
+                document.getElementById('edit-publicationDate').value = p.publicationDate || '';
+                document.getElementById('edit-effectiveDate').value = p.effectiveDate || '';
+                new bootstrap.Modal(document.getElementById('edit-modal')).show();
+            }
+            function doDelete(id) {
+                if (!confirm('确定删除该法律法规？')) return;
+                apiFetch('/api/falv/' + id, { method: 'DELETE' }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        showToast('删除成功');
+                        loadList();
+                    } else showToast(result.msg || '删除失败');
+                }).catch(function () { showToast('删除失败'); });
+            }
+            function loadList() {
+                apiFetch('/api/falv').then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        falvList = result.data || [];
+                        applyFilterAndRender();
+                    }
+                }).catch(function () { showToast('加载失败'); });
+            }
+
+            document.querySelectorAll('.sort-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var f = this.dataset.field;
+                    if (f === 'default') {
+                        sortConfig = { field: 'default', type: 'desc' };
+                    } else {
+                        sortConfig.type = (sortConfig.field === f && sortConfig.type === 'desc') ? 'asc' : 'desc';
+                        sortConfig.field = f;
+                    }
+                    applyFilterAndRender();
+                });
+            });
+
+            if (DOM.searchInput) DOM.searchInput.addEventListener('input', debounce(applyFilterAndRender, 250));
+
+            DOM.selectAll.addEventListener('change', function () {
+                DOM.list.querySelectorAll('.falv-check').forEach(function (cb) { cb.checked = DOM.selectAll.checked; });
+            });
+
+            document.getElementById('btn-batch-download').addEventListener('click', function () {
+                var ids = Array.from(DOM.list.querySelectorAll('.falv-check:checked')).map(function (x) { return x.dataset.id; });
+                if (!ids.length) { showToast('请先选择要下载的文件'); return; }
+                ids.forEach(function (id) {
+                    window.open('/api/falv/download/' + id, '_blank');
+                });
+                showToast('已发起 ' + ids.length + ' 个下载');
+            });
+
+            document.getElementById('btn-batch-export').addEventListener('click', function () {
+                var ids = Array.from(DOM.list.querySelectorAll('.falv-check:checked')).map(function (x) { return x.dataset.id; });
+                var list = ids.length ? falvList.filter(function (p) { return ids.indexOf(String(p.id)) !== -1; }) : falvList;
+                var lines = list.map(function (p) {
+                    return (p.name || '') + '\t' + (p.category || '') + '\t' + (p.issuingAuthority || '') + '\t' + (p.publicationDate || '') + '\t' + (p.effectiveDate || '') + '\t' + (p.validity || '');
+                });
+                var csv = '\ufeff' + '法规名称\t法律法规分类\t制定机关\t公布日期\t施行日期\t时效性\n' + lines.join('\n');
+                var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = '法律法规目录_' + new Date().toISOString().slice(0, 10) + '.csv';
+                a.click();
+                showToast('导出成功');
+            });
+
+            document.getElementById('file-upload').addEventListener('change', function () {
+                var f = this.files[0];
+                if (!f) return;
+                var modal = new bootstrap.Modal(document.getElementById('upload-modal'));
+                document.getElementById('upload-form').reset();
+                document.querySelector('#upload-form [name="name"]').value = f.name.replace(/\.(pdf|doc|docx)$/i, '');
+                var fu = document.querySelector('#upload-form [name="file"]');
+                var dt = new DataTransfer();
+                dt.items.add(f);
+                fu.files = dt.files;
+                modal.show();
+            });
+
+            document.getElementById('btn-upload').addEventListener('click', function () {
+                document.getElementById('file-upload').click();
+            });
+
+            document.getElementById('btn-submit-upload').addEventListener('click', function () {
+                var form = document.getElementById('upload-form');
+                var fd = new FormData();
+                fd.append('name', form.name.value.trim() || form.querySelector('[name="file"]').files[0].name.replace(/\.(pdf|doc|docx)$/i, ''));
+                fd.append('category', form.category.value);
+                fd.append('issuingAuthority', form.issuingAuthority.value);
+                fd.append('publicationDate', form.publicationDate.value);
+                fd.append('effectiveDate', form.effectiveDate.value);
+                fd.append('file', form.querySelector('[name="file"]').files[0]);
+                apiFetch('/api/falv/upload', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        bootstrap.Modal.getInstance(document.getElementById('upload-modal')).hide();
+                        showToast('上传成功');
+                        document.getElementById('file-upload').value = '';
+                        loadList();
+                    } else showToast(result.msg || '上传失败');
+                }).catch(function () { showToast('上传失败'); });
+            });
+
+            document.getElementById('btn-submit-edit').addEventListener('click', function () {
+                var form = document.getElementById('edit-form');
+                var id = form.querySelector('[name="id"]').value;
+                var fileInput = document.getElementById('edit-file');
+                var hasFile = fileInput.files && fileInput.files[0];
+                var body = {
+                    name: form.querySelector('[name="name"]').value.trim(),
+                    category: form.querySelector('[name="category"]').value,
+                    issuingAuthority: form.querySelector('[name="issuingAuthority"]').value,
+                    publicationDate: form.querySelector('[name="publicationDate"]').value,
+                    effectiveDate: form.querySelector('[name="effectiveDate"]').value
+                };
+                if (!body.name) { showToast('请输入法规名称'); return; }
+                var done = function (result) {
+                    if (result.code === 0) {
+                        bootstrap.Modal.getInstance(document.getElementById('edit-modal')).hide();
+                        document.getElementById('edit-file').value = '';
+                        showToast('修改成功');
+                        loadList();
+                    } else showToast(result.msg || '修改失败');
+                };
+                if (hasFile) {
+                    var fd = new FormData();
+                    fd.append('name', body.name);
+                    fd.append('category', body.category);
+                    fd.append('issuingAuthority', body.issuingAuthority);
+                    fd.append('publicationDate', body.publicationDate);
+                    fd.append('effectiveDate', body.effectiveDate);
+                    fd.append('file', fileInput.files[0]);
+                    apiFetch('/api/falv/' + id + '/replace-file', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(done).catch(function () { showToast('修改失败'); });
+                } else {
+                    apiFetch('/api/falv/' + id, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    }).then(function (r) { return r.json(); }).then(done).catch(function () { showToast('修改失败'); });
+                }
+            });
+
+            document.getElementById('btn-batch-del').addEventListener('click', function () {
+                var ids = Array.from(DOM.list.querySelectorAll('.falv-check:checked')).map(function (x) { return x.dataset.id; });
+                if (!ids.length) { showToast('请先选择要删除的记录'); return; }
+                if (!confirm('确定删除选中的 ' + ids.length + ' 条记录？')) return;
+                apiFetch('/api/falv/batch-delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: ids })
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        showToast('删除成功');
+                        loadList();
+                    } else showToast(result.msg || '删除失败');
+                }).catch(function () { showToast('删除失败'); });
+            });
+
+            document.getElementById('backup-btn').addEventListener('click', function () {
+                apiFetch('/api/falv/backup').then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        var blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' });
+                        var a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = '法律法规备份_' + new Date().toISOString().slice(0, 10) + '.json';
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                        showToast('备份已下载');
+                    } else showToast(result.msg || '备份失败');
+                }).catch(function () { showToast('备份失败'); });
+            });
+
+            document.getElementById('restore-btn').addEventListener('click', function () {
+                new bootstrap.Modal(document.getElementById('restore-modal')).show();
+            });
+
+            document.getElementById('do-restore-btn').addEventListener('click', function () {
+                var file = document.getElementById('restore-file').files[0];
+                if (!file) { showToast('请选择备份文件'); return; }
+                var fr = new FileReader();
+                fr.onload = function () {
+                    try {
+                        var data = JSON.parse(fr.result);
+                        var arr = Array.isArray(data) ? data : (data.data || data.items || []);
+                        apiFetch('/api/falv/restore', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ data: arr })
+                        }).then(function (r) { return r.json(); }).then(function (result) {
+                            if (result.code === 0) {
+                                bootstrap.Modal.getInstance(document.getElementById('restore-modal')).hide();
+                                document.getElementById('restore-file').value = '';
+                                loadList();
+                                showToast('数据恢复成功');
+                            } else showToast(result.msg || '恢复失败');
+                        }).catch(function () { showToast('恢复失败'); });
+                    } catch (e) { showToast('文件格式错误'); }
+                };
+                fr.readAsText(file);
+            });
+
+            document.getElementById('login-btn').addEventListener('click', function () {
+                new bootstrap.Modal(document.getElementById('login-modal')).show();
+            });
+            document.getElementById('logout-btn').addEventListener('click', function () {
+                apiFetch('/api/logout', { method: 'POST' }).then(function () {
+                    clearToken();
+                    isAdmin = false;
+                    DOM.operationArea.style.display = 'none';
+                    document.getElementById('user-role').innerHTML = '当前身份：<b>游客（未登录）</b>';
+                    document.getElementById('login-btn').style.display = '';
+                    document.getElementById('logout-btn').style.display = 'none';
+                    document.getElementById('admin-mgmt-btn').style.display = 'none';
+                    showToast('已退出登录');
+                });
+            });
+            document.getElementById('login-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                var fd = new FormData(this);
+                apiFetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: fd.get('username'),
+                        password: fd.get('password'),
+                        rememberMe: fd.get('rememberMe') === 'on'
+                    })
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        setToken(result.data.token, fd.get('rememberMe') === 'on');
+                        bootstrap.Modal.getInstance(document.getElementById('login-modal')).hide();
+                        isAdmin = true;
+                        DOM.operationArea.style.display = '';
+                        document.getElementById('user-role').innerHTML = '当前身份：<b>管理员（' + result.data.username + '）</b>';
+                        document.getElementById('login-btn').style.display = 'none';
+                        document.getElementById('logout-btn').style.display = '';
+                        showToast('登录成功');
+                        loadList();
+                    } else showToast(result.msg || '登录失败');
+                }).catch(function () { showToast('登录失败'); });
+            });
+
+            apiFetch('/api/me').then(function (r) { return r.json(); }).then(function (result) {
+                if (result.code === 0) {
+                    isAdmin = true;
+                    DOM.operationArea.style.display = '';
+                    document.getElementById('user-role').innerHTML = '当前身份：<b>' + (result.data.role === 'super_admin' ? '超级管理员' : '管理员') + '（' + result.data.username + '）</b>';
+                    document.getElementById('login-btn').style.display = 'none';
+                    document.getElementById('logout-btn').style.display = '';
+                    var mgmt = document.getElementById('admin-mgmt-btn');
+                    mgmt.style.display = result.data.role === 'super_admin' ? '' : 'none';
+                }
+            }).catch(function () {});
+
+            renderFilters();
+            loadList();
+        })();
+    </script>
+</body>
+</html>

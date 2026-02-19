@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>每周工作</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .navbar { background: linear-gradient(135deg, #165DFF 0%, #0d3ba8 100%); padding: 0.5rem 1rem; }
+        .navbar-brand { font-size: 16px; }
+        .nav-link { padding: 0.5rem 0.75rem; }
+        .navbar-nav { align-items: center; }
+        .navbar-nav .btn { margin: 5px 0 !important; width: 100%; }
+        @media (min-width: 992px) { .navbar-brand { font-size: 18px; } .navbar-nav .btn { width: auto; margin: 0 0 0 10px !important; } }
+        .header-filter { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .header-toolbar { flex-wrap: nowrap; overflow-x: auto; }
+        .meizhou-list { list-style: none; padding: 0; margin: 0; }
+        .meizhou-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 0; border: 1px solid #e9ecef; border-radius: 8px; margin-bottom: 12px;
+            background: #fff; cursor: pointer; transition: box-shadow 0.2s, border-color 0.2s;
+            overflow: hidden;
+        }
+        .meizhou-item:hover { box-shadow: 0 4px 12px rgba(22, 93, 255, 0.12); border-color: #165DFF; }
+        .meizhou-item .meizhou-bar { width: 4px; flex-shrink: 0; align-self: stretch; background: linear-gradient(180deg, #165DFF 0%, #4d8cff 100%); }
+        .meizhou-item .meizhou-icon-wrap { width: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #165DFF; font-size: 34px; }
+        .meizhou-item .meizhou-content { flex: 1; min-width: 0; padding: 14px 12px 14px 0; }
+        .meizhou-item .meizhou-actions { flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding-right: 12px; }
+        .meizhou-item .meizhou-actions a.btn { text-decoration: none; }
+        .meizhou-count { font-size: 13px; color: #6c757d; font-weight: normal; margin-left: 8px; }
+        .meizhou-item .meizhou-check { flex-shrink: 0; }
+        .meizhou-item .meizhou-title { font-weight: bold; font-size: 16px; color: #1a1a1a; margin-bottom: 6px; }
+        .meizhou-item .meizhou-meta { font-size: 12px; color: #6c757d; line-height: 1.6; }
+        .sidebar-section { margin-bottom: 24px; }
+        .sidebar-section h6 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #333; }
+        .sidebar-section .form-check { margin-bottom: 8px; font-size: 13px; }
+        .sidebar-section .form-check-input { margin-top: 0.25rem; }
+        .batch-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .operation-btn { margin: 5px; }
+        .btn-group-inline { display: inline-flex; align-items: flex-start; gap: 5px; flex-wrap: wrap; }
+        #operation-area .btn { min-height: 44px; padding: 0.5rem 1rem; font-size: 14px; }
+        #operation-area .form-control { min-height: 44px; font-size: 14px; }
+        @media (max-width: 767px) {
+            .btn-group-inline { flex-direction: column; width: 100%; }
+            .card-header.d-flex { flex-direction: column; align-items: flex-start !important; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">市人大常委会监督协调处 <span class="navbar-version">V1.0</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="index.html">监督议题</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="pishi.html">批示督办</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="minsheng.html">民生实事</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meiyue.html">每月工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link active" href="meizhou.html">每周工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="falv.html">法律法规</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">工作计划</a></li>
+                </ul>
+                <div class="navbar-nav ms-auto">
+                    <span class="nav-link text-white" id="user-role">当前身份：<b>游客（未登录）</b></span>
+                    <button class="btn btn-outline-light ms-2" id="admin-mgmt-btn" style="display: none;"><i class="fa fa-users"></i> 管理员管理</button>
+                    <button class="btn btn-outline-light ms-2" id="login-btn">管理员登录</button>
+                    <button class="btn btn-outline-light ms-2" id="logout-btn" style="display: none;">退出登录</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5 pb-4">
+        <div class="card" id="operation-area" style="display: none;">
+            <div class="card-header"><h5 class="mb-0">数据操作</h5></div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <div class="input-group w-auto flex-grow-1">
+                        <input type="file" class="form-control" id="file-upload" accept=".pdf">
+                        <button class="btn btn-primary" id="btn-upload"><i class="fa fa-upload"></i> 上传 PDF</button>
+                    </div>
+                    <button class="btn btn-danger operation-btn" id="btn-batch-del"><i class="fa fa-trash"></i> 批量删除</button>
+                    <div class="btn-group-inline">
+                        <button class="btn btn-secondary operation-btn" id="backup-btn"><i class="fa fa-database"></i> 备份数据</button>
+                        <button class="btn btn-dark operation-btn" id="restore-btn"><i class="fa fa-recycle"></i> 数据恢复</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="mb-0">机关各部门每周重点工作安排<span class="meizhou-count" id="meizhou-count"></span></h5>
+                        <div class="d-flex flex-nowrap align-items-center gap-3 header-toolbar">
+                            <div class="header-filter d-flex align-items-center gap-1"><label class="text-muted small mb-0"><i class="fa fa-filter"></i> 年度</label><select class="form-select form-select-sm" id="filter-year" style="width: auto; min-width: 90px;"></select></div>
+                            <div class="header-filter d-flex align-items-center gap-1"><label class="text-muted small mb-0"><i class="fa fa-calendar"></i> 月份</label><select class="form-select form-select-sm" id="filter-month" style="width: auto; min-width: 80px;"></select></div>
+                            <div class="header-filter d-flex align-items-center gap-1"><label class="text-muted small mb-0"><i class="fa fa-calendar-check-o"></i> 周数</label><select class="form-select form-select-sm" id="filter-week" style="width: auto; min-width: 70px;"></select></div>
+                            <div class="input-group flex-shrink-0" style="min-width: 160px; width: 180px;">
+                                <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                <input type="text" class="form-control" id="search-input" placeholder="模糊搜索">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="batch-bar mb-3" id="batch-bar" style="display: none;">
+                            <div class="form-check d-inline-block me-2">
+                                <input class="form-check-input" type="checkbox" id="select-all">
+                                <label class="form-check-label" for="select-all">全选</label>
+                            </div>
+                        </div>
+                        <ul class="meizhou-list" id="meizhou-list"></ul>
+                        <div id="empty-tip" class="text-muted text-center py-5" style="display: none;">暂无数据，管理员可上传 PDF 文档</div>
+                    </div>
+                </div>
+    </div>
+
+    <div class="modal fade" id="upload-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">上传每周工作 PDF</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="upload-form">
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">年度 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="year" required placeholder="如 2025">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">月份 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="month" required placeholder="如 01 或 2">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">周数 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="week" required placeholder="如 1、2、第1周">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">选择 PDF 文件 <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" name="file" accept=".pdf" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="btn-submit-upload"><i class="fa fa-upload"></i> 上传</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="edit-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">修改</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-form">
+                        <input type="hidden" name="id" id="edit-id">
+                        <div class="mb-3">
+                            <label class="form-label">标题</label>
+                            <input type="text" class="form-control" name="fileName" id="edit-fileName" placeholder="显示的文件名/标题">
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">年度</label>
+                                <input type="text" class="form-control" name="year" id="edit-year">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">月份</label>
+                                <input type="text" class="form-control" name="month" id="edit-month">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label">周数</label>
+                                <input type="text" class="form-control" name="week" id="edit-week">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">重新上传文件</label>
+                            <input type="file" class="form-control" id="edit-file" accept=".pdf">
+                            <div class="form-text">选择新文件将替换原有 PDF，不选则保留原文件</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="btn-submit-edit"><i class="fa fa-save"></i> 保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade login-modal" id="login-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">管理员登录</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="login-form">
+                        <div class="mb-3">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="username" placeholder="请输入管理员用户名" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember-me" checked>
+                            <label class="form-check-label" for="remember-me">7日内免登陆</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary" id="do-login-btn">登录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="restore-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">数据恢复</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">选择备份文件（JSON 格式）</label>
+                        <input type="file" class="form-control" id="restore-file" accept=".json">
+                    </div>
+                    <p class="text-muted small mb-0">恢复后将覆盖当前全部数据。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="do-restore-btn">确认恢复</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="admin-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">管理员管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <button class="btn btn-success btn-sm" id="admin-add-btn"><i class="fa fa-plus"></i> 新增管理员</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead><tr><th>用户名</th><th>角色</th><th>操作</th></thead>
+                            <tbody id="admin-list-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="admin-form-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="admin-form-title">新增管理员</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="admin-form">
+                        <input type="hidden" name="id">
+                        <div class="mb-2"><label class="form-label">用户名</label><input type="text" class="form-control" name="username" required></div>
+                        <div class="mb-2"><label class="form-label">密码</label><input type="password" class="form-control" name="password" placeholder="留空则不修改"></div>
+                        <div class="mb-2"><label class="form-label">角色</label>
+                            <select class="form-select" name="role">
+                                <option value="admin">普通管理员</option>
+                                <option value="super_admin">超级管理员</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="admin-save-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-notice" id="toast-notice"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script>
+        (function () {
+            var meizhouList = [];
+            var filterYear = '';
+            var filterMonth = '';
+            var filterWeek = '';
+            var isAdmin = false;
+            var currentUsername = '';
+            var currentUserRole = '';
+            var DOM = {
+                list: document.getElementById('meizhou-list'),
+                searchInput: document.getElementById('search-input'),
+                emptyTip: document.getElementById('empty-tip'),
+                operationArea: document.getElementById('operation-area'),
+                filterYear: document.getElementById('filter-year'),
+                filterMonth: document.getElementById('filter-month'),
+                filterWeek: document.getElementById('filter-week'),
+                meizhouCount: document.getElementById('meizhou-count')
+            };
+
+            function getToken() {
+                var expiry = localStorage.getItem('tokenExpiry');
+                if (localStorage.getItem('token') && expiry && Date.now() > parseInt(expiry, 10)) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('tokenExpiry');
+                }
+                return localStorage.getItem('token') || sessionStorage.getItem('token');
+            }
+            function setToken(token, rememberMe) {
+                if (rememberMe) {
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('tokenExpiry', String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+                    sessionStorage.removeItem('token');
+                } else {
+                    sessionStorage.setItem('token', token);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('tokenExpiry');
+                }
+            }
+            function clearToken() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('tokenExpiry');
+                sessionStorage.removeItem('token');
+            }
+            function apiFetch(url, options) {
+                options = options || {};
+                var token = getToken();
+                var headers = options.headers || {};
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                options.headers = headers;
+                return fetch(url, options).then(function (res) {
+                    if (res.status === 401) {
+                        var hadToken = !!token;
+                        clearToken();
+                        isAdmin = false;
+                        DOM.operationArea.style.display = 'none';
+                        document.getElementById('user-role').innerHTML = '当前身份：<b>游客（未登录）</b>';
+                        document.getElementById('login-btn').style.display = '';
+                        document.getElementById('logout-btn').style.display = 'none';
+                        if (hadToken) showToast('您已被强制下线，请重新登录');
+                        throw new Error('UNAUTHORIZED');
+                    }
+                    return res;
+                });
+            }
+            function showToast(msg, duration) {
+                duration = duration || 2000;
+                var el = document.getElementById('toast-notice');
+                el.textContent = msg;
+                el.classList.add('show');
+                setTimeout(function () { el.classList.remove('show'); }, duration);
+            }
+            function debounce(fn, ms) {
+                var t;
+                return function () { clearTimeout(t); t = setTimeout(function () { fn.apply(this, arguments); }, ms); };
+            }
+
+            function getDisplayName(p) {
+                if (p.fileName) return p.fileName;
+                if (p.content) return p.content;
+                return '未命名';
+            }
+            function padTwo(val) {
+                var s = String(val || '');
+                return /^\d$/.test(s) ? '0' + s : s;
+            }
+
+            function renderFilters() {
+                var years = {};
+                meizhouList.forEach(function (p) { if (p.year) years[String(p.year)] = true; });
+                var yearKeys = Object.keys(years).sort().reverse();
+                var baseForMonths = filterYear ? meizhouList.filter(function (p) { return String(p.year || '') === filterYear; }) : meizhouList;
+                var months = {};
+                baseForMonths.forEach(function (p) { if (p.month) months[padTwo(p.month)] = true; });
+                var monthKeys = Object.keys(months).sort(function (a, b) { return parseInt(b, 10) - parseInt(a, 10); });
+                var baseForWeeks = filterYear || filterMonth ? meizhouList.filter(function (p) {
+                    if (filterYear && String(p.year || '') !== filterYear) return false;
+                    if (filterMonth && padTwo(p.month) !== filterMonth) return false;
+                    return true;
+                }) : meizhouList;
+                var weeks = {};
+                baseForWeeks.forEach(function (p) { if (p.week) weeks[padTwo(p.week)] = true; });
+                var weekKeys = Object.keys(weeks).sort(function (a, b) { return parseInt(b, 10) - parseInt(a, 10); });
+                DOM.filterYear.innerHTML = '<option value="">全部年度</option>' + yearKeys.map(function (k) { return '<option value="' + k + '"' + (filterYear === k ? ' selected' : '') + '>' + k + '年</option>'; }).join('');
+                DOM.filterMonth.innerHTML = '<option value="">全部月份</option>' + monthKeys.map(function (k) { return '<option value="' + k + '"' + (filterMonth === k ? ' selected' : '') + '>' + padTwo(k) + '月</option>'; }).join('');
+                DOM.filterWeek.innerHTML = '<option value="">全部周数</option>' + weekKeys.map(function (k) { return '<option value="' + k + '"' + (filterWeek === k ? ' selected' : '') + '>第' + padTwo(k) + '周</option>'; }).join('');
+                DOM.filterYear.onchange = function () {
+                    filterYear = DOM.filterYear.value || '';
+                    filterMonth = '';
+                    filterWeek = '';
+                    renderFilters();
+                    applyFilterAndRender();
+                };
+                DOM.filterMonth.onchange = function () {
+                    filterMonth = DOM.filterMonth.value || '';
+                    filterWeek = '';
+                    renderFilters();
+                    applyFilterAndRender();
+                };
+                DOM.filterWeek.onchange = function () {
+                    filterWeek = DOM.filterWeek.value || '';
+                    applyFilterAndRender();
+                };
+            }
+
+            function filterBySearch(list) {
+                var kw = (DOM.searchInput && DOM.searchInput.value) ? DOM.searchInput.value.trim().toLowerCase() : '';
+                if (!kw) return list;
+                return list.filter(function (p) {
+                    var s = getDisplayName(p) + ' ' + (p.year || '') + ' ' + (p.month || '') + ' ' + (p.week || '') + ' ' + (p.content || '');
+                    return s.toLowerCase().indexOf(kw) !== -1;
+                });
+            }
+
+            function applyFilterAndRender() {
+                var list = meizhouList;
+                if (filterYear) list = list.filter(function (p) { return String(p.year || '') === filterYear; });
+                if (filterMonth) list = list.filter(function (p) { return padTwo(p.month) === filterMonth; });
+                if (filterWeek) list = list.filter(function (p) { return padTwo(p.week) === filterWeek; });
+                list = filterBySearch(list);
+                renderList(list);
+            }
+
+            function renderList(list) {
+                if (DOM.meizhouCount) {
+                    var total = meizhouList.length;
+                    var shown = list ? list.length : 0;
+                    DOM.meizhouCount.textContent = total === shown ? '共 ' + total + ' 条' : '当前筛选 ' + shown + ' 条 / 共 ' + total + ' 条';
+                }
+                if (!list || !list.length) {
+                    DOM.list.innerHTML = '';
+                    DOM.emptyTip.style.display = 'block';
+                    return;
+                }
+                DOM.emptyTip.style.display = 'none';
+                var sorted = list.slice().sort(function (a, b) {
+                    var ya = (a.year || '').toString();
+                    var yb = (b.year || '').toString();
+                    if (ya !== yb) return yb.localeCompare(ya);
+                    var ma = (a.month || '').toString();
+                    var mb = (b.month || '').toString();
+                    if (ma !== mb) return mb.localeCompare(ma);
+                    var wa = (a.week || '').toString();
+                    var wb = (b.week || '').toString();
+                    return wb.localeCompare(wa);
+                });
+                var batchBar = document.getElementById('batch-bar');
+                if (batchBar) batchBar.style.display = isAdmin ? 'flex' : 'none';
+                var html = '';
+                sorted.forEach(function (p) {
+                    var meta = [p.year ? '年度: ' + p.year : '', p.month ? '月份: ' + padTwo(p.month) : '', p.week ? '周数: ' + padTwo(p.week) : ''].filter(Boolean).join(' | ');
+                    var dlUrl = '/api/meizhou/download/' + p.id;
+                    html += '<li class="meizhou-item" data-id="' + p.id + '">';
+                    html += '<div class="meizhou-bar"></div>';
+                    html += '<div class="meizhou-icon-wrap"><i class="fa fa-file-pdf-o"></i></div>';
+                    if (isAdmin) html += '<div class="meizhou-check"><input type="checkbox" class="form-check-input row-checkbox" data-id="' + p.id + '"></div>';
+                    html += '<div class="meizhou-content">';
+                    html += '<div class="meizhou-title">' + (getDisplayName(p) || '未命名') + '</div>';
+                    html += '<div class="meizhou-meta">' + (meta || '暂无') + '</div>';
+                    html += '</div>';
+                    html += '<div class="meizhou-actions">';
+                    html += '<a href="' + dlUrl + '" class="btn btn-primary btn-sm btn-download" title="下载" target="_blank" onclick="event.stopPropagation();"><i class="fa fa-download"></i> 下载</a>';
+                    if (isAdmin) {
+                        html += '<button class="btn btn-sm btn-outline-primary edit-btn" data-id="' + p.id + '"><i class="fa fa-edit"></i> 编辑</button>';
+                        html += '<button class="btn btn-sm btn-outline-danger del-btn" data-id="' + p.id + '"><i class="fa fa-trash"></i> 删除</button>';
+                    }
+                    html += '</div></li>';
+                });
+                DOM.list.innerHTML = html;
+                DOM.list.querySelectorAll('.meizhou-item').forEach(function (el) {
+                    el.addEventListener('click', function (e) {
+                        if (e.target.closest('.meizhou-actions') || e.target.closest('.meizhou-check') || e.target.type === 'checkbox') return;
+                        var id = el.dataset.id;
+                        if (id) {
+                            var item = meizhouList.find(function (x) { return String(x.id) === id; });
+                            if (item && item.filePath) window.location.href = 'meizhou-detail.html?id=' + id;
+                        }
+                    });
+                });
+                DOM.list.querySelectorAll('.edit-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) { e.stopPropagation(); openEditModal(btn.dataset.id); });
+                });
+                DOM.list.querySelectorAll('.del-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) { e.stopPropagation(); doDelete(btn.dataset.id); });
+                });
+                DOM.list.querySelectorAll('.row-checkbox').forEach(function (cb) {
+                    cb.addEventListener('click', function (e) { e.stopPropagation(); });
+                });
+            }
+
+            function openEditModal(id) {
+                var p = meizhouList.find(function (x) { return String(x.id) === String(id); });
+                if (!p) return;
+                document.getElementById('edit-id').value = p.id;
+                document.getElementById('edit-fileName').value = getDisplayName(p) || '';
+                document.getElementById('edit-year').value = p.year || '';
+                document.getElementById('edit-month').value = p.month || '';
+                document.getElementById('edit-week').value = p.week || '';
+                new bootstrap.Modal(document.getElementById('edit-modal')).show();
+            }
+
+            function doDelete(id) {
+                if (!confirm('确定删除该条记录吗？')) return;
+                apiFetch('/api/meizhou/' + id, { method: 'DELETE' }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) { showToast('已删除'); loadList(); } else showToast(result.msg || '删除失败');
+                }).catch(function () { showToast('删除失败'); });
+            }
+
+            function loadList() {
+                apiFetch('/api/meizhou').then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        meizhouList = result.data || [];
+                        renderFilters();
+                        applyFilterAndRender();
+                    }
+                }).catch(function () { showToast('加载失败'); });
+            }
+
+            document.getElementById('file-upload').addEventListener('change', function () {
+                var f = this.files[0];
+                if (!f) return;
+                var modal = new bootstrap.Modal(document.getElementById('upload-modal'));
+                document.getElementById('upload-form').reset();
+                var fu = document.querySelector('#upload-form [name="file"]');
+                var dt = new DataTransfer();
+                dt.items.add(f);
+                fu.files = dt.files;
+                modal.show();
+            });
+
+            document.getElementById('btn-upload').addEventListener('click', function () {
+                document.getElementById('file-upload').click();
+            });
+
+            document.getElementById('btn-submit-upload').addEventListener('click', function () {
+                var form = document.getElementById('upload-form');
+                var year = form.year.value.trim();
+                var month = form.month.value.trim();
+                var week = form.week.value.trim();
+                var fileInput = form.querySelector('[name="file"]');
+                if (!year || !month || !week) { showToast('请填写年度、月份、周数'); return; }
+                if (!fileInput.files || !fileInput.files[0]) { showToast('请选择 PDF 文件'); return; }
+                var fd = new FormData();
+                fd.append('year', year);
+                fd.append('month', month);
+                fd.append('week', week);
+                fd.append('file', fileInput.files[0]);
+                apiFetch('/api/meizhou/upload', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        bootstrap.Modal.getInstance(document.getElementById('upload-modal')).hide();
+                        document.getElementById('file-upload').value = '';
+                        showToast('上传成功');
+                        loadList();
+                    } else showToast(result.msg || '上传失败');
+                }).catch(function () { showToast('上传失败'); });
+            });
+
+            document.getElementById('btn-submit-edit').addEventListener('click', function () {
+                var id = document.getElementById('edit-id').value;
+                var fileInput = document.getElementById('edit-file');
+                var hasFile = fileInput.files && fileInput.files[0];
+                var fileName = document.getElementById('edit-fileName').value.trim();
+                var year = document.getElementById('edit-year').value.trim();
+                var month = document.getElementById('edit-month').value.trim();
+                var week = document.getElementById('edit-week').value.trim();
+                var done = function (result) {
+                    if (result.code === 0) {
+                        bootstrap.Modal.getInstance(document.getElementById('edit-modal')).hide();
+                        document.getElementById('edit-file').value = '';
+                        showToast('修改成功');
+                        loadList();
+                    } else showToast(result.msg || '修改失败');
+                };
+                if (hasFile) {
+                    var fd = new FormData();
+                    fd.append('fileName', fileName);
+                    fd.append('year', year);
+                    fd.append('month', month);
+                    fd.append('week', week);
+                    fd.append('file', fileInput.files[0]);
+                    apiFetch('/api/meizhou/' + id + '/replace-file', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(done).catch(function () { showToast('修改失败'); });
+                } else {
+                    apiFetch('/api/meizhou/' + id, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fileName: fileName, year: year, month: month, week: week })
+                    }).then(function (r) { return r.json(); }).then(done).catch(function () { showToast('修改失败'); });
+                }
+            });
+
+            document.getElementById('backup-btn').addEventListener('click', function () {
+                apiFetch('/api/meizhou/backup').then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        var blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' });
+                        var a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = '每周工作备份_' + new Date().toISOString().slice(0, 10) + '.json';
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                        showToast('备份已下载');
+                    } else showToast(result.msg || '备份失败');
+                }).catch(function () { showToast('备份失败'); });
+            });
+
+            document.getElementById('restore-btn').addEventListener('click', function () {
+                new bootstrap.Modal(document.getElementById('restore-modal')).show();
+            });
+
+            document.getElementById('do-restore-btn').addEventListener('click', function () {
+                var file = document.getElementById('restore-file').files[0];
+                if (!file) { showToast('请选择备份文件'); return; }
+                var fr = new FileReader();
+                fr.onload = function () {
+                    try {
+                        var data = JSON.parse(fr.result);
+                        var arr = Array.isArray(data) ? data : (data.data || data.items || []);
+                        apiFetch('/api/meizhou/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: arr }) })
+                            .then(function (r) { return r.json(); })
+                            .then(function (result) {
+                                if (result.code === 0) {
+                                    bootstrap.Modal.getInstance(document.getElementById('restore-modal')).hide();
+                                    document.getElementById('restore-file').value = '';
+                                    loadList();
+                                    showToast('数据恢复成功');
+                                } else showToast(result.msg || '恢复失败');
+                            }).catch(function () { showToast('恢复失败'); });
+                    } catch (e) { showToast('文件格式错误'); }
+                };
+                fr.readAsText(file);
+            });
+
+            if (DOM.searchInput) DOM.searchInput.addEventListener('input', debounce(applyFilterAndRender, 250));
+
+            var selectAllEl = document.getElementById('select-all');
+            if (selectAllEl) {
+                selectAllEl.addEventListener('change', function () {
+                    document.querySelectorAll('.row-checkbox').forEach(function (cb) { cb.checked = selectAllEl.checked; });
+                });
+            }
+
+            var btnBatchDel = document.getElementById('btn-batch-del');
+            if (btnBatchDel) {
+                btnBatchDel.addEventListener('click', function () {
+                    var checked = document.querySelectorAll('.row-checkbox:checked');
+                    if (!checked.length) { showToast('请选择要删除的记录'); return; }
+                    if (!confirm('确定删除选中的 ' + checked.length + ' 条记录吗？')) return;
+                    var ids = Array.prototype.map.call(checked, function (c) { return c.dataset.id; });
+                    apiFetch('/api/meizhou/batch-delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: ids }) })
+                        .then(function (r) { return r.json(); })
+                        .then(function (result) {
+                            if (result.code === 0) { showToast('已批量删除'); loadList(); } else showToast(result.msg || '批量删除失败');
+                        })
+                        .catch(function () { showToast('批量删除失败'); });
+                });
+            }
+
+            document.getElementById('login-btn').addEventListener('click', function () {
+                new bootstrap.Modal(document.getElementById('login-modal')).show();
+            });
+
+            document.getElementById('login-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                document.getElementById('do-login-btn').click();
+            });
+
+            document.getElementById('do-login-btn').addEventListener('click', function () {
+                var username = document.getElementById('username').value.trim();
+                var password = document.getElementById('password').value.trim();
+                var rememberMe = document.getElementById('remember-me').checked;
+                if (!username || !password) { showToast('请输入用户名和密码'); return; }
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, password: password, rememberMe: rememberMe })
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        setToken(result.data.token, rememberMe);
+                        isAdmin = true;
+                        currentUserRole = result.data.role || 'admin';
+                        currentUsername = result.data.username || '';
+                        var roleText = currentUserRole === 'super_admin' ? '超级管理员' : '管理员';
+                        document.getElementById('user-role').innerHTML = '当前身份：<b>' + roleText + '（' + result.data.username + '）</b>';
+                        document.getElementById('login-btn').style.display = 'none';
+                        document.getElementById('logout-btn').style.display = '';
+                        document.getElementById('operation-area').style.display = 'block';
+                        if (document.getElementById('admin-mgmt-btn')) document.getElementById('admin-mgmt-btn').style.display = currentUserRole === 'super_admin' ? '' : 'none';
+                        bootstrap.Modal.getInstance(document.getElementById('login-modal')).hide();
+                        loadList();
+                        showToast('登录成功');
+                    } else showToast(result.msg || '登录失败');
+                }).catch(function () { showToast('登录失败'); });
+            });
+
+            document.getElementById('logout-btn').addEventListener('click', function () {
+                var token = getToken();
+                if (token) fetch('/api/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(function () {});
+                clearToken();
+                isAdmin = false;
+                document.getElementById('user-role').innerHTML = '当前身份：<b>游客（未登录）</b>';
+                document.getElementById('login-btn').style.display = '';
+                document.getElementById('logout-btn').style.display = 'none';
+                document.getElementById('operation-area').style.display = 'none';
+                if (document.getElementById('admin-mgmt-btn')) document.getElementById('admin-mgmt-btn').style.display = 'none';
+                loadList();
+                showToast('已退出登录');
+            });
+
+            apiFetch('/api/me').then(function (r) { return r.json(); }).then(function (result) {
+                if (result && result.code === 0) {
+                    isAdmin = true;
+                    currentUserRole = result.data.role || 'admin';
+                    currentUsername = result.data.username || '';
+                    var roleText = currentUserRole === 'super_admin' ? '超级管理员' : '管理员';
+                    document.getElementById('user-role').innerHTML = '当前身份：<b>' + roleText + '（' + result.data.username + '）</b>';
+                    document.getElementById('login-btn').style.display = 'none';
+                    document.getElementById('logout-btn').style.display = '';
+                    document.getElementById('operation-area').style.display = 'block';
+                    if (document.getElementById('admin-mgmt-btn')) document.getElementById('admin-mgmt-btn').style.display = currentUserRole === 'super_admin' ? '' : 'none';
+                }
+            }).catch(function () {});
+
+            if (document.getElementById('admin-mgmt-btn')) {
+                document.getElementById('admin-mgmt-btn').addEventListener('click', function () {
+                    apiFetch('/api/admin/list').then(function (r) { return r.json(); }).then(function (result) {
+                        if (result.code === 0) {
+                            var html = '';
+                            result.data.forEach(function (a) {
+                                var roleLab = a.role === 'super_admin' ? '超级管理员' : '普通管理员';
+                                var isSelf = a.username === currentUsername;
+                                var forceBtn = !isSelf && a.role !== 'super_admin' ? '<button class="btn btn-warning btn-sm force-logout-btn" data-username="' + a.username + '">强制下线</button>' : '';
+                                var editBtn = (a.role !== 'super_admin' || isSelf) ? '<button class="btn btn-info btn-sm edit-admin-btn" data-id="' + a.id + '" data-username="' + a.username + '" data-role="' + (a.role || 'admin') + '">编辑</button>' : '';
+                                var delBtn = a.role !== 'super_admin' ? '<button class="btn btn-danger btn-sm del-admin-btn" data-id="' + a.id + '" data-username="' + a.username + '">删除</button>' : '';
+                                html += '<tr><td>' + a.username + '</td><td>' + roleLab + '</td><td class="d-flex gap-1">' + forceBtn + editBtn + delBtn + '</td></tr>';
+                            });
+                            document.getElementById('admin-list-body').innerHTML = html || '<tr><td colspan="3">暂无管理员</td></tr>';
+                            new bootstrap.Modal(document.getElementById('admin-modal')).show();
+                        }
+                    });
+                });
+            }
+            if (document.getElementById('admin-list-body')) {
+                document.getElementById('admin-list-body').addEventListener('click', function (e) {
+                    var t = e.target.closest('.force-logout-btn');
+                    if (t) {
+                        if (!confirm('确定强制 ' + t.dataset.username + ' 下线？')) return;
+                        apiFetch('/api/admin/force-logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: t.dataset.username }) })
+                            .then(function (r) { return r.json(); }).then(function (result) {
+                                if (result.code === 0) { showToast('已强制下线'); bootstrap.Modal.getInstance(document.getElementById('admin-modal')).hide(); }
+                                else showToast(result.msg);
+                            });
+                        return;
+                    }
+                    t = e.target.closest('.edit-admin-btn');
+                    if (t) {
+                        document.getElementById('admin-form-title').textContent = '编辑管理员';
+                        document.querySelector('#admin-form [name="id"]').value = t.dataset.id;
+                        document.querySelector('#admin-form [name="username"]').value = t.dataset.username;
+                        document.querySelector('#admin-form [name="username"]').readOnly = true;
+                        document.querySelector('#admin-form [name="password"]').value = '';
+                        document.querySelector('#admin-form [name="password"]').placeholder = '留空则不修改';
+                        document.querySelector('#admin-form [name="role"]').value = t.dataset.role;
+                        new bootstrap.Modal(document.getElementById('admin-form-modal')).show();
+                        return;
+                    }
+                    t = e.target.closest('.del-admin-btn');
+                    if (t) {
+                        if (!confirm('确定删除管理员 ' + t.dataset.username + '？')) return;
+                        apiFetch('/api/admin/' + t.dataset.id, { method: 'DELETE' }).then(function (r) { return r.json(); }).then(function (result) {
+                            if (result.code === 0) { showToast('已删除'); document.getElementById('admin-mgmt-btn').click(); } else showToast(result.msg);
+                        });
+                    }
+                });
+            }
+            if (document.getElementById('admin-add-btn')) {
+                document.getElementById('admin-add-btn').addEventListener('click', function () {
+                    document.getElementById('admin-form-title').textContent = '新增管理员';
+                    document.getElementById('admin-form').reset();
+                    document.querySelector('#admin-form [name="id"]').value = '';
+                    document.querySelector('#admin-form [name="username"]').readOnly = false;
+                    document.querySelector('#admin-form [name="password"]').placeholder = '请输入密码';
+                    document.querySelector('#admin-form [name="role"]').value = 'admin';
+                    new bootstrap.Modal(document.getElementById('admin-form-modal')).show();
+                });
+            }
+            if (document.getElementById('admin-save-btn')) {
+                document.getElementById('admin-save-btn').addEventListener('click', function () {
+                    var id = document.querySelector('#admin-form [name="id"]').value;
+                    var username = document.querySelector('#admin-form [name="username"]').value.trim();
+                    var password = document.querySelector('#admin-form [name="password"]').value;
+                    var role = document.querySelector('#admin-form [name="role"]').value;
+                    if (!username) { showToast('请输入用户名'); return; }
+                    if (!id && !password) { showToast('请输入密码'); return; }
+                    var body = { username: username, role: role };
+                    if (id && password) body.password = password;
+                    if (!id) body.password = password;
+                    var url = id ? ('/api/admin/' + id) : '/api/admin/add';
+                    var method = id ? 'PUT' : 'POST';
+                    apiFetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+                        .then(function (r) { return r.json(); })
+                        .then(function (result) {
+                            if (result.code === 0) { showToast('保存成功'); bootstrap.Modal.getInstance(document.getElementById('admin-form-modal')).hide(); document.getElementById('admin-mgmt-btn').click(); }
+                            else showToast(result.msg);
+                        });
+                });
+            }
+
+            loadList();
+        })();
+    </script>
+</body>
+</html>

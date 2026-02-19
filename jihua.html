@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>工作计划</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .navbar { background: linear-gradient(135deg, #165DFF 0%, #0d3ba8 100%); padding: 0.5rem 1rem; }
+        .navbar-brand { font-size: 16px; }
+        @media (min-width: 992px) { .navbar-brand { font-size: 18px; } }
+        .jihua-layout { display: flex; gap: 24px; align-items: stretch; flex-wrap: wrap; }
+        .jihua-date-section {
+            flex-shrink: 0; min-width: 160px; padding: 18px 20px;
+            background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 10px; border: 1px solid #e2e8f0;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
+        }
+        .jihua-date-top { font-size: 13px; color: #1e3a5f; margin-bottom: 6px; }
+        .jihua-date-day { font-size: 64px; font-weight: 700; color: #1e3a5f; line-height: 1; margin: 10px 0; }
+        .jihua-date-lunar { font-size: 12px; color: #334155; }
+        .jihua-date-lunar .lunar-badge { color: #165DFF; font-weight: 600; }
+        .jihua-grid-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .jihua-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; flex: 1; }
+        @media (max-width: 991px) { .jihua-grid { grid-template-columns: repeat(3, 1fr); } .jihua-grid-wrap { max-height: none; } }
+        @media (max-width: 575px) { .jihua-grid { grid-template-columns: repeat(2, 1fr); } .jihua-date-section { min-width: 100%; } }
+        .jihua-month-block { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+        .jihua-month-block:nth-child(4n) { border-right: none; }
+        .jihua-month-block:nth-child(-n+4) .jihua-month-cell { background: linear-gradient(135deg, rgba(245,158,11,0.22) 0%, rgba(251,191,36,0.18) 100%); }
+        .jihua-month-block:nth-child(n+5):nth-child(-n+8) .jihua-month-cell { background: linear-gradient(135deg, rgba(107,114,128,0.2) 0%, rgba(156,163,175,0.18) 100%); }
+        .jihua-month-block:nth-child(n+9) .jihua-month-cell { background: linear-gradient(135deg, rgba(16,185,129,0.22) 0%, rgba(52,211,153,0.18) 100%); }
+        .jihua-month-cell {
+            padding: 12px 14px; min-height: 38px; text-align: center; cursor: pointer; transition: all 0.2s;
+            border-bottom: 1px solid #e2e8f0; color: #1e293b;
+        }
+        .jihua-month-cell.has-file { color: #165DFF; font-weight: 600; }
+        .jihua-month-cell.has-file:hover { background-color: rgba(22, 93, 255, 0.12) !important; }
+        .jihua-month-cell.no-file { color: #94a3b8; }
+        .jihua-month-cell.no-file:hover { background-color: rgba(148, 163, 184, 0.08) !important; }
+        .jihua-weeks { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 10px; background: #fff; min-height: 46px; }
+        .jihua-week-cell {
+            flex: 1; min-width: calc(25% - 4px); padding: 8px 6px; min-height: 34px; text-align: center; cursor: pointer; font-size: 12px; transition: all 0.2s;
+            border-radius: 6px; border: 1px solid #e2e8f0;
+        }
+        .jihua-week-cell.has-file { color: #165DFF; font-weight: 600; border-color: #93c5fd; background: rgba(147,197,253,0.08); }
+        .jihua-week-cell.has-file:hover { background: rgba(22, 93, 255, 0.12); }
+        .jihua-week-cell.no-file { color: #94a3b8; }
+        .jihua-week-cell.no-file:hover { background: #f8fafc; }
+        .jihua-month-label { font-size: 15px; font-weight: 600; }
+        .jihua-tips { font-size: 12px; line-height: 1.6; color: #64748b; }
+        @media (max-width: 767px) { .jihua-tips { font-size: 11px; } }
+        .operation-btn { margin: 5px; }
+        .btn-group-inline { display: inline-flex; gap: 5px; flex-wrap: wrap; }
+        .jihua-tooltip { position: absolute; background: rgba(0,0,0,0.85); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; white-space: nowrap; z-index: 100; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">市人大常委会监督协调处 <span class="navbar-version">V1.0</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="index.html">监督议题</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="pishi.html">批示督办</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="minsheng.html">民生实事</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meiyue.html">每月工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meizhou.html">每周工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="falv.html">法律法规</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link active" href="jihua.html">工作计划</a></li>
+                </ul>
+                <div class="navbar-nav ms-auto">
+                    <span class="nav-link text-white" id="user-role">当前身份：<b>游客（未登录）</b></span>
+                    <button class="btn btn-outline-light ms-2" id="admin-mgmt-btn" style="display: none;"><i class="fa fa-users"></i> 管理员管理</button>
+                    <button class="btn btn-outline-light ms-2" id="login-btn">管理员登录</button>
+                    <button class="btn btn-outline-light ms-2" id="logout-btn" style="display: none;">退出登录</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5 pb-4">
+        <div class="card" id="operation-area" style="display: none;">
+            <div class="card-header"><h5 class="mb-0">数据操作</h5></div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <button class="btn btn-primary" id="btn-upload"><i class="fa fa-upload"></i> 上传文件</button>
+                    <div class="btn-group-inline">
+                        <button class="btn btn-secondary operation-btn" id="backup-btn"><i class="fa fa-database"></i> 备份数据</button>
+                        <button class="btn btn-dark operation-btn" id="restore-btn"><i class="fa fa-recycle"></i> 数据恢复</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header py-2"><h5 class="mb-0">工作计划</h5></div>
+            <div class="card-body py-3">
+                <div class="jihua-layout">
+                    <div class="jihua-date-section">
+                        <div class="jihua-date-top" id="date-top"></div>
+                        <div class="jihua-date-day" id="date-day"></div>
+                        <div class="jihua-date-lunar" id="date-lunar"></div>
+                    </div>
+                    <div class="jihua-grid-wrap">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                            <p class="jihua-tips text-muted small mb-0 flex-grow-1">Tips：点击“月份”，查看或下载常委会每月重点工作计划安排；点击“周数”，查看或下载机关各部门重点工作计划安排。</p>
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                <label class="text-muted small mb-0">年度</label>
+                                <select class="form-select form-select-sm" id="year-select" style="width: auto; min-width: 100px;"></select>
+                            </div>
+                        </div>
+                        <div id="jihua-grid-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="upload-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">上传工作计划</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="upload-form">
+                        <div class="mb-3">
+                            <label class="form-label">类别 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="upload-category" required>
+                                <option value="">请选择</option>
+                                <option value="monthly">常委会每月</option>
+                                <option value="weekly">各部门每周</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="upload-year-wrap">
+                            <label class="form-label">年度 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="upload-year"></select>
+                        </div>
+                        <div class="mb-3" id="upload-month-wrap">
+                            <label class="form-label">月份 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="upload-month"></select>
+                        </div>
+                        <div class="mb-3" id="upload-week-wrap" style="display: none;">
+                            <label class="form-label">周数 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="upload-week"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">选择文件 <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="upload-file" accept=".pdf" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="btn-submit-upload"><i class="fa fa-upload"></i> 上传</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="restore-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">数据恢复</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <p class="small text-muted">工作计划数据与每月工作、每周工作共用，请前往对应模块恢复。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade login-modal" id="login-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">管理员登录</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="login-form">
+                        <div class="mb-3"><label class="form-label">用户名</label><input type="text" class="form-control" id="login-username" required></div>
+                        <div class="mb-3"><label class="form-label">密码</label><input type="password" class="form-control" id="login-password" required></div>
+                        <div class="mb-3 form-check"><input type="checkbox" class="form-check-input" id="login-remember" checked><label class="form-check-label" for="login-remember">7日内免登录</label></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="login-submit">登录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lunar-javascript/1.7.4/lunar.min.js"></script>
+    <script>
+        (function () {
+            var token = null;
+            function getToken() { return localStorage.getItem('token') || sessionStorage.getItem('token'); }
+            function apiFetch(url, opts) {
+                opts = opts || {};
+                var h = opts.headers || {};
+                if (getToken()) h['Authorization'] = 'Bearer ' + getToken();
+                opts.headers = h;
+                return fetch(url, opts);
+            }
+            function showToast(msg) {
+                var el = document.getElementById('toast-notice');
+                if (el) { el.textContent = msg; el.classList.add('show'); setTimeout(function () { el.classList.remove('show'); }, 2500); }
+                else alert(msg);
+            }
+
+            var meiyueItems = [];
+            var meizhouItems = [];
+            var currentYear = new Date().getFullYear();
+
+            function padMonth(m) { var s = String(m); return s.length === 1 ? '0' + s : s; }
+
+            function loadMeiyue() {
+                return apiFetch('/api/meiyue').then(function (r) { return r.json(); }).then(function (res) {
+                    meiyueItems = (res.data || []).filter(function (p) { return p.filePath; });
+                    return meiyueItems;
+                }).catch(function () { meiyueItems = []; return []; });
+            }
+            function loadMeizhou() {
+                return apiFetch('/api/meizhou').then(function (r) { return r.json(); }).then(function (res) {
+                    meizhouItems = res.data || [];
+                    return meizhouItems;
+                }).catch(function () { meizhouItems = []; return []; });
+            }
+
+            function findMeiyue(year, month) {
+                var y = String(year); var mo = parseInt(month, 10);
+                return meiyueItems.find(function (p) {
+                    var py = String(p.year || ''); var pm = parseInt(p.month || '0', 10);
+                    return py === y && pm === mo;
+                });
+            }
+            function findMeizhou(year, month, week) {
+                var y = String(year); var m = parseInt(month, 10); var w = String(week);
+                return meizhouItems.find(function (p) {
+                    var py = String(p.year || ''); var pm = parseInt(p.month || '0', 10); var pw = String(p.week || '');
+                    return py === y && pm === m && pw === w;
+                });
+            }
+
+            function getWeeksInMonth(year, month) {
+                var d = new Date(year, month - 1, 1);
+                var last = new Date(year, month, 0);
+                var weeks = [];
+                var w = 1;
+                while (d <= last) {
+                    var dayOfWeek = d.getDay();
+                    var start = new Date(d);
+                    var end = new Date(d);
+                    var days = 0;
+                    while (days < 7 && d <= last) { days++; d.setDate(d.getDate() + 1); }
+                    end.setTime(d.getTime() - 1);
+                    weeks.push({ week: w, start: start, end: end });
+                    w++;
+                }
+                return weeks;
+            }
+
+            function renderDateSection() {
+                var now = new Date();
+                var weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+                document.getElementById('date-top').textContent = now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日 ' + weekdays[now.getDay()];
+                document.getElementById('date-day').textContent = now.getDate();
+                var lunarStr = '';
+                try {
+                    if (typeof Lunar !== 'undefined') {
+                        var lunar = Lunar.fromDate(now);
+                        var sx = lunar.getYearShengXiao ? lunar.getYearShengXiao() : lunar.getYearInGanZhi();
+                        var md = (lunar.getMonthInChinese ? lunar.getMonthInChinese() : '') + (lunar.getDayInChinese ? lunar.getDayInChinese() : '');
+                        lunarStr = '【' + sx + '】农历' + (md || lunar.toString());
+                    } else {
+                        lunarStr = '农历';
+                    }
+                } catch (e) { lunarStr = '农历'; }
+                document.getElementById('date-lunar').innerHTML = '<span class="lunar-badge">' + lunarStr + '</span>';
+            }
+
+            function renderYearSelect() {
+                var sel = document.getElementById('year-select');
+                var start = currentYear - 1;
+                var end = currentYear + 1;
+                sel.innerHTML = '';
+                for (var y = end; y >= start; y--) {
+                    var opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y + '年';
+                    if (y === currentYear) opt.selected = true;
+                    sel.appendChild(opt);
+                }
+                sel.addEventListener('change', function () {
+                    currentYear = parseInt(sel.value, 10);
+                    renderGrid();
+                });
+            }
+
+            function renderGrid() {
+                var container = document.getElementById('jihua-grid-container');
+                var html = '';
+                for (var m = 1; m <= 12; m++) {
+                    var meiyue = findMeiyue(currentYear, m);
+                    var hasMonthFile = !!meiyue;
+                    var monthCls = hasMonthFile ? 'has-file' : 'no-file';
+                    var weeks = getWeeksInMonth(currentYear, m);
+                    var weeksHtml = '';
+                    for (var wi = 0; wi < Math.min(5, weeks.length); wi++) {
+                        var w = weeks[wi].week;
+                        var meizhou = findMeizhou(currentYear, m, w);
+                        var hasWeekFile = !!meizhou;
+                        var weekCls = hasWeekFile ? 'has-file' : 'no-file';
+                        weeksHtml += '<div class="jihua-week-cell ' + weekCls + '" data-year="' + currentYear + '" data-month="' + m + '" data-week="' + w + '" title="' + (hasWeekFile ? '点击预览/下载' : '暂无文件') + '">第' + w + '周</div>';
+                    }
+                    html += '<div class="jihua-month-block">';
+                    html += '<div class="jihua-month-cell ' + monthCls + ' jihua-month-label" data-year="' + currentYear + '" data-month="' + m + '" title="' + (hasMonthFile ? '点击预览/下载' : '暂无文件') + '">' + m + '月份</div>';
+                    html += '<div class="jihua-weeks">' + weeksHtml + '</div>';
+                    html += '</div>';
+                }
+                container.innerHTML = '<div class="jihua-grid">' + html + '</div>';
+
+                var monthCells = container.querySelectorAll('.jihua-month-cell');
+                monthCells.forEach(function (cell) {
+                    cell.addEventListener('click', function () {
+                        var y = parseInt(cell.dataset.year, 10);
+                        var mo = parseInt(cell.dataset.month, 10);
+                        var item = findMeiyue(y, mo);
+                        if (item && item.filePath) {
+                            window.open('meiyue-detail.html?id=' + item.id, '_blank');
+                        } else {
+                            showToast('该月份暂无文件');
+                        }
+                    });
+                });
+
+                var weekCells = container.querySelectorAll('.jihua-week-cell');
+                weekCells.forEach(function (cell) {
+                    cell.addEventListener('click', function () {
+                        var y = parseInt(cell.dataset.year, 10);
+                        var mo = parseInt(cell.dataset.month, 10);
+                        var w = parseInt(cell.dataset.week, 10);
+                        var item = findMeizhou(y, mo, w);
+                        if (item && item.filePath) {
+                            window.open('meizhou-detail.html?id=' + item.id, '_blank');
+                        } else {
+                            showToast('该周暂无文件');
+                        }
+                    });
+                });
+            }
+
+            function initUploadModal() {
+                var cat = document.getElementById('upload-category');
+                var yearWrap = document.getElementById('upload-year-wrap');
+                var yearSel = document.getElementById('upload-year');
+                var monthWrap = document.getElementById('upload-month-wrap');
+                var weekWrap = document.getElementById('upload-week-wrap');
+                var monthSel = document.getElementById('upload-month');
+                var weekSel = document.getElementById('upload-week');
+                var y0 = new Date().getFullYear();
+                for (var y = y0 - 1; y <= y0 + 2; y++) {
+                    var o = document.createElement('option');
+                    o.value = y;
+                    o.textContent = y + '年';
+                    yearSel.appendChild(o);
+                }
+                for (var m = 1; m <= 12; m++) {
+                    var o = document.createElement('option');
+                    o.value = m;
+                    o.textContent = m + '月';
+                    monthSel.appendChild(o);
+                }
+                for (var w = 1; w <= 5; w++) {
+                    var o = document.createElement('option');
+                    o.value = w;
+                    o.textContent = '第' + w + '周';
+                    weekSel.appendChild(o);
+                }
+                cat.addEventListener('change', function () {
+                    var v = cat.value;
+                    monthWrap.style.display = (v === 'monthly' || v === 'weekly') ? 'block' : 'none';
+                    weekWrap.style.display = v === 'weekly' ? 'block' : 'none';
+                });
+            }
+
+            document.getElementById('btn-upload').addEventListener('click', function () {
+                document.getElementById('upload-form').reset();
+                document.getElementById('upload-year').value = currentYear;
+                document.getElementById('upload-category').dispatchEvent(new Event('change'));
+                new bootstrap.Modal(document.getElementById('upload-modal')).show();
+            });
+
+            document.getElementById('btn-submit-upload').addEventListener('click', function () {
+                var cat = document.getElementById('upload-category').value;
+                var year = document.getElementById('upload-year').value;
+                var month = document.getElementById('upload-month').value;
+                var week = document.getElementById('upload-week').value;
+                var fileInput = document.getElementById('upload-file');
+                if (!fileInput.files || !fileInput.files[0]) { showToast('请选择文件'); return; }
+                if (!year) { showToast('请选择年度'); return; }
+                var fd = new FormData();
+                fd.append('year', year);
+                fd.append('month', padMonth(month));
+                fd.append('file', fileInput.files[0]);
+
+                if (cat === 'monthly') {
+                    var existing = findMeiyue(year, month);
+                    if (existing) {
+                        apiFetch('/api/meiyue/' + existing.id + '/replace-file', {
+                            method: 'POST',
+                            body: fd
+                        }).then(function (r) { return r.json(); }).then(function (res) {
+                            if (res.code === 0) { showToast('已替换'); bootstrap.Modal.getInstance(document.getElementById('upload-modal')).hide(); loadMeiyue().then(renderGrid); }
+                            else showToast(res.msg || '替换失败');
+                        }).catch(function () { showToast('操作失败'); });
+                    } else {
+                        apiFetch('/api/meiyue/upload', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (res) {
+                            if (res.code === 0) { showToast('上传成功'); bootstrap.Modal.getInstance(document.getElementById('upload-modal')).hide(); loadMeiyue().then(renderGrid); }
+                            else showToast(res.msg || '上传失败');
+                        }).catch(function () { showToast('上传失败'); });
+                    }
+                } else if (cat === 'weekly') {
+                    fd.append('week', week);
+                    var existing = findMeizhou(year, month, week);
+                    if (existing) {
+                        apiFetch('/api/meizhou/' + existing.id + '/replace-file', {
+                            method: 'POST',
+                            body: fd
+                        }).then(function (r) { return r.json(); }).then(function (res) {
+                            if (res.code === 0) { showToast('已替换'); bootstrap.Modal.getInstance(document.getElementById('upload-modal')).hide(); loadMeizhou().then(renderGrid); }
+                            else showToast(res.msg || '替换失败');
+                        }).catch(function () { showToast('操作失败'); });
+                    } else {
+                        apiFetch('/api/meizhou/upload', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (res) {
+                            if (res.code === 0) { showToast('上传成功'); bootstrap.Modal.getInstance(document.getElementById('upload-modal')).hide(); loadMeizhou().then(renderGrid); }
+                            else showToast(res.msg || '上传失败');
+                        }).catch(function () { showToast('上传失败'); });
+                    }
+                } else {
+                    showToast('请选择类别');
+                }
+            });
+
+            document.getElementById('backup-btn').addEventListener('click', function () {
+                showToast('工作计划数据与每月工作、每周工作共用，请前往对应模块备份');
+            });
+            document.getElementById('restore-btn').addEventListener('click', function () {
+                new bootstrap.Modal(document.getElementById('restore-modal')).show();
+            });
+
+            document.getElementById('login-btn').addEventListener('click', function () { new bootstrap.Modal(document.getElementById('login-modal')).show(); });
+            document.getElementById('login-submit').addEventListener('click', function () {
+                var u = document.getElementById('login-username').value.trim();
+                var p = document.getElementById('login-password').value.trim();
+                var rem = document.getElementById('login-remember').checked;
+                if (!u || !p) { showToast('请输入用户名和密码'); return; }
+                fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, password: p, rememberMe: rem }) })
+                    .then(function (r) { return r.json(); })
+                    .then(function (res) {
+                        if (res.code === 0) {
+                            if (rem) localStorage.setItem('token', res.data.token);
+                            else sessionStorage.setItem('token', res.data.token);
+                            bootstrap.Modal.getInstance(document.getElementById('login-modal')).hide();
+                            location.reload();
+                        } else showToast(res.msg);
+                    }).catch(function () { showToast('登录失败'); });
+            });
+            document.getElementById('logout-btn').addEventListener('click', function () {
+                localStorage.removeItem('token');
+                sessionStorage.removeItem('token');
+                location.reload();
+            });
+
+            function initAuth() {
+                var t = getToken();
+                if (!t) {
+                    document.getElementById('user-role').innerHTML = '当前身份：<b>游客（未登录）</b>';
+                    document.getElementById('login-btn').style.display = '';
+                    document.getElementById('logout-btn').style.display = 'none';
+                    document.getElementById('operation-area').style.display = 'none';
+                    return;
+                }
+                apiFetch('/api/me').then(function (r) { return r.json(); }).then(function (res) {
+                    if (res.code === 0) {
+                        document.getElementById('user-role').innerHTML = '当前身份：<b>' + (res.data.role === 'super_admin' ? '超级管理员' : '管理员') + '（' + res.data.username + '）</b>';
+                        document.getElementById('login-btn').style.display = 'none';
+                        document.getElementById('logout-btn').style.display = '';
+                        document.getElementById('operation-area').style.display = '';
+                    }
+                }).catch(function () {});
+            }
+
+            initUploadModal();
+            renderDateSection();
+            renderYearSelect();
+            Promise.all([loadMeiyue(), loadMeizhou()]).then(function () {
+                renderGrid();
+            });
+            initAuth();
+        })();
+    </script>
+    <div class="toast-notice" id="toast-notice" style="position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:12px 20px;border-radius:4px;z-index:9999;opacity:0;transition:opacity 0.3s;"></div>
+</body>
+</html>

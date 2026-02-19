@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每周工作详情</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        .preview-toolbar { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #f8f9fa; border-radius: 8px 8px 0 0; flex-wrap: wrap; }
+        .preview-toolbar .page-info { font-size: 13px; color: #6c757d; }
+        .preview-toolbar .zoom-controls { display: flex; align-items: center; gap: 4px; }
+        .preview-toolbar .btn-download { margin-left: auto; }
+        .preview-toolbar .zoom-controls button { width: 32px; height: 28px; padding: 0; font-size: 14px; }
+        .preview-toolbar .week-select { min-width: 180px; }
+        .preview-container { border: 1px solid #dee2e6; border-radius: 0 0 8px 8px; overflow: auto; height: 82vh; min-height: 600px; background: #fff; }
+        .preview-zoom-wrapper { transform-origin: 0 0; width: 100%; height: 82vh; min-height: 600px; }
+        .preview-pdf { padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+        .preview-pdf canvas { max-width: 100%; height: auto; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">市人大常委会监督协调处 <span class="navbar-version">V1.0</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="index.html">监督议题</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="pishi.html">批示督办</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="minsheng.html">民生实事</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="meiyue.html">每月工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link active" href="meizhou.html">每周工作</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="falv.html">法律法规</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">工作计划</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link text-white" href="meizhou.html"><i class="fa fa-arrow-left"></i> 返回列表</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4 mb-5 pb-4">
+        <div id="loading" class="text-center py-5">加载中...</div>
+        <div id="content" style="display: none;">
+            <div class="card mt-4">
+                <div class="preview-toolbar">
+                    <label for="week-select" class="me-2 mb-0">周数筛选：</label>
+                    <select class="form-select form-select-sm week-select" id="week-select"></select>
+                    <span class="page-info" id="page-info"></span>
+                    <div class="zoom-controls">
+                        <button class="btn btn-sm btn-outline-secondary" id="zoom-out">-</button>
+                        <span id="zoom-value">100%</span>
+                        <button class="btn btn-sm btn-outline-secondary" id="zoom-in">+</button>
+                    </div>
+                    <button class="btn btn-primary btn-sm btn-download" id="btn-download"><i class="fa fa-download"></i> 下载</button>
+                </div>
+                <div class="preview-container" id="preview-container">
+                    <div id="zoom-wrapper" class="preview-zoom-wrapper">
+                        <div id="preview-pdf" class="preview-pdf" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="error" class="text-center py-5 text-danger" style="display: none;">加载失败，记录不存在或未上传 PDF</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var id = params.get('id');
+            var doc = null;
+            var allItems = [];
+            var zoom = 100;
+            var token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+            function apiFetch(url, options) {
+                options = options || {};
+                var headers = options.headers || {};
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                options.headers = headers;
+                return fetch(url, options);
+            }
+
+            function padTwo(val) {
+                var s = String(val || '');
+                return /^\d$/.test(s) ? '0' + s : s;
+            }
+            function formatWeekLabel(p) {
+                var parts = [];
+                if (p.year) parts.push(p.year + '年');
+                if (p.month) parts.push(padTwo(p.month) + '月');
+                if (p.week) {
+                    var w = String(p.week);
+                    if (/^第.*周$/.test(w)) parts.push(w);
+                    else parts.push('第' + padTwo(w) + '周');
+                }
+                return parts.length ? parts.join(' ') : (p.fileName || '未命名');
+            }
+
+            function loadAllItems() {
+                return apiFetch('/api/meizhou').then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.code === 0) {
+                        allItems = (result.data || []).filter(function (p) { return p.filePath; });
+                        return allItems;
+                    }
+                    return [];
+                }).catch(function () { return []; });
+            }
+
+            function renderWeekSelect() {
+                var sel = document.getElementById('week-select');
+                sel.innerHTML = '';
+                allItems.sort(function (a, b) {
+                    var ya = (a.year || '').toString();
+                    var yb = (b.year || '').toString();
+                    if (ya !== yb) return yb.localeCompare(ya);
+                    var ma = (a.month || '').toString();
+                    var mb = (b.month || '').toString();
+                    if (ma !== mb) return mb.localeCompare(ma);
+                    var wa = (a.week || '').toString();
+                    var wb = (b.week || '').toString();
+                    return wb.localeCompare(wa);
+                });
+                allItems.forEach(function (p) {
+                    var opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = formatWeekLabel(p);
+                    if (String(p.id) === String(id)) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+                sel.addEventListener('change', function () {
+                    var newId = sel.value;
+                    if (newId) window.location.href = 'meizhou-detail.html?id=' + newId;
+                });
+            }
+
+            function loadDoc() {
+                if (!id) { showError(); return; }
+                loadAllItems().then(function () {
+                    var item = allItems.find(function (x) { return String(x.id) === String(id); });
+                    if (!item || !item.filePath) { showError(); return; }
+                    doc = item;
+                    renderWeekSelect();
+                    loadPreview();
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                }).catch(showError);
+            }
+
+            function showError() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }
+
+            function applyDocumentZoom() {
+                var wrapper = document.getElementById('zoom-wrapper');
+                if (wrapper) wrapper.style.transform = 'scale(' + (zoom / 100) + ')';
+            }
+
+            function loadPreview() {
+                var pdfDiv = document.getElementById('preview-pdf');
+                var pageInfo = document.getElementById('page-info');
+                applyDocumentZoom();
+                if (!doc || !doc.filePath) return;
+                pdfDiv.style.display = 'flex';
+                pdfDiv.innerHTML = '<p class="text-muted">加载 PDF 中...</p>';
+                if (typeof pdfjsLib === 'undefined') {
+                    pdfDiv.innerHTML = '<p class="text-danger">PDF 预览库加载失败，请<a href="/api/meizhou/download/' + id + '">下载</a>后查看</p>';
+                    pageInfo.textContent = 'PDF 文档（预览失败）';
+                    return;
+                }
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                apiFetch('/api/meizhou/file/' + id).then(function (r) { return r.arrayBuffer(); }).then(function (arrayBuffer) {
+                    return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                }).then(function (pdf) {
+                    var numPages = pdf.numPages;
+                    pageInfo.textContent = '共 ' + numPages + ' 页';
+                    pdfDiv.innerHTML = '';
+                    var baseScale = 1.5;
+                    var renderNext = function (pageNum) {
+                        if (pageNum > numPages) return Promise.resolve();
+                        return pdf.getPage(pageNum).then(function (page) {
+                            var vp = page.getViewport({ scale: baseScale });
+                            var canvas = document.createElement('canvas');
+                            var ctx = canvas.getContext('2d');
+                            canvas.height = vp.height;
+                            canvas.width = vp.width;
+                            canvas.style.maxWidth = '100%';
+                            return page.render({ canvasContext: ctx, viewport: vp }).promise.then(function () {
+                                pdfDiv.appendChild(canvas);
+                                return renderNext(pageNum + 1);
+                            });
+                        });
+                    };
+                    return renderNext(1);
+                }).catch(function () {
+                    pdfDiv.innerHTML = '<p class="text-danger">预览失败，请<a href="/api/meizhou/download/' + id + '">下载</a>后查看</p>';
+                    pageInfo.textContent = 'PDF 文档（预览失败）';
+                });
+            }
+
+            document.getElementById('zoom-in').addEventListener('click', function () {
+                zoom = Math.min(150, zoom + 10);
+                document.getElementById('zoom-value').textContent = zoom + '%';
+                applyDocumentZoom();
+            });
+
+            document.getElementById('zoom-out').addEventListener('click', function () {
+                zoom = Math.max(50, zoom - 10);
+                document.getElementById('zoom-value').textContent = zoom + '%';
+                applyDocumentZoom();
+            });
+
+            document.getElementById('btn-download').addEventListener('click', function () {
+                if (id) window.location.href = '/api/meizhou/download/' + id;
+            });
+
+            loadDoc();
+        })();
+    </script>
+</body>
+</html>

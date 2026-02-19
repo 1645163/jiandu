@@ -1,0 +1,17 @@
+{
+  "name": "jiandu",
+  "version": "1.0.0",
+  "description": "市人大常委会监督协调处管理系统",
+  "main": "server.js",
+  "scripts": { "start": "node server.js", "dev": "node server.js" },
+  "keywords": ["jiandu", "监督", "民生实事"],
+  "license": "MIT",
+  "config": { "db": "jiandu", "port": 3000 },
+  "dependencies": {
+    "compression": "^1.7.4",
+    "express": "^4.21.0",
+    "multer": "^1.4.5-lts.1",
+    "mammoth": "^1.6.0",
+    "xlsx": "^0.18.5"
+  }
+}

@@ -1,0 +1,37 @@
+/* 表格列宽调整 - 无保存宽度时自动分布，内容随列宽换行 */
+.table-resizable { width: 100%; }
+.table-resizable .table { width: 100%; }
+.table-resizable .table th { position: relative; }
+.col-resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  cursor: col-resize;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.col-resize-handle::after {
+  content: '';
+  width: 2px;
+  height: 20px;
+  background: #000;
+  border-radius: 1px;
+  transition: opacity 0.2s;
+}
+.col-resize-handle:hover::after,
+.col-resize-handle:active::after {
+  opacity: 0.9;
+  height: 24px;
+}
+.col-resize-handle:hover {
+  background: rgba(0,0,0,0.08);
+}
+.table-resizable .table td {
+  white-space: normal !important;
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+}

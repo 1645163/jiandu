@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>民生实事</title>
+    <!-- 核心资源优先加载，非核心资源懒加载 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/common.css">
+    <style>
+        /* 基础样式 - 移动端优先 */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .navbar { 
+            background: linear-gradient(135deg, #165DFF 0%, #0d3ba8 100%); 
+            padding: 0.5rem 1rem;
+        }
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        /* 图表容器 - 铺满页面宽度 */
+        .chart-container {
+            height: 220px;
+            width: 100%;
+            margin: 12px 0;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .operation-btn { margin: 5px; }
+        .disabled-btn { cursor: not-allowed; opacity: 0.6; }
+        .login-modal .modal-content {
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .login-modal .modal-header {
+            background-color: #165DFF;
+            color: white;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .table-header-blue {
+            background-color: #165DFF !important;
+            color: white !important;
+            border-color: #1452e0 !important;
+        }
+        .table-header-blue th { border-color: #1452e0 !important; }
+        /* 民生实事部门标题：醒目背景+蓝色左侧色条 */
+        .dept-card .dept-card-header {
+            background: linear-gradient(90deg, #e8f0fe 0%, #d2e3fc 100%);
+            color: #1e3a5f;
+            font-weight: 600;
+            border: none;
+            border-left: 4px solid #165DFF;
+            border-radius: 8px 8px 0 0;
+        }
+        /* 排序按钮样式 */
+        .sort-btn {
+            background: transparent;
+            border: none;
+            color: #000 !important;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+        .sort-btn:hover { color: #333 !important; }
+        .chart-data-label {
+            font-family: 'Microsoft YaHei';
+            font-weight: bold;
+            font-size: 14px;
+            color: #fff;
+        }
+        /* 轻量提示样式 - 移动端适配 */
+        .toast-notice {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 300px;
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            border-radius: 4px;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            text-align: center;
+        }
+        .toast-notice.show { opacity: 1; }
+        /* 备份提示样式 */
+        .backup-tip {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        /* 上下排序按钮样式 */
+        .move-btn {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 按钮组布局 - 响应式 */
+        .btn-group-inline {
+            display: inline-flex;
+            align-items: flex-start;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        /* 移动端核心优化 */
+        /* 响应式表格 - 横向滚动 */
+        .table-responsive {
+            min-height: 200px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* 移动端顺滑滚动 */
+            margin: 0 -15px;
+            padding: 0 15px;
+        }
+        /* 表格单元格适配 - 内容自动换行 */
+        .table th, .table td { padding: 0.75rem 0.5rem; font-size: 13px; }
+        .table th { white-space: nowrap; } /* 表头与排序按钮同一行 */
+        .table td { white-space: normal; word-break: break-all; overflow-wrap: break-word; }
+        /* 移动端按钮优化 - 增大触控区域 */
+        .btn {
+            min-height: 44px; /* 符合移动端触控标准 */
+            min-width: 44px;
+            padding: 0.5rem 1rem;
+            font-size: 14px;
+        }
+        .btn-sm {
+            min-height: 36px;
+            min-width: 36px;
+            padding: 0.25rem 0.5rem;
+        }
+        .move-btn {
+            min-height: 30px;
+            min-width: 30px;
+        }
+        /* 表单元素适配 */
+        .form-control, .form-select {
+            min-height: 44px;
+            font-size: 14px;
+            width: 100%; /* 移动端宽度100% */
+        }
+        /* 操作区域适配 */
+        .card-body {
+            padding: 1rem;
+        }
+        /* 导航栏适配 */
+        .navbar-brand {
+            font-size: 16px;
+        }
+        .nav-link {
+            padding: 0.5rem 0.75rem;
+        }
+
+        /* 媒体查询 - 平板/桌面端适配 */
+        @media (min-width: 576px) {
+            .chart-container {
+                height: 240px;
+                padding: 16px 20px;
+            }
+            .table th, .table td { font-size: 14px; padding: 0.75rem; }
+            .toast-notice {
+                top: 20px;
+                right: 20px;
+                left: auto;
+                transform: none;
+                width: auto;
+                max-width: 350px;
+            }
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 260px;
+            }
+            .table-responsive {
+                margin: 0;
+                padding: 0;
+            }
+        }
+        @media (min-width: 992px) {
+            .navbar-brand {
+                font-size: 18px;
+            }
+        }
+
+        /* 模态框响应式 */
+        .modal-dialog {
+            margin: 1rem;
+            max-width: 90%; /* 移动端模态框宽度 */
+        }
+        @media (min-width: 576px) {
+            .modal-sm {
+                max-width: 400px;
+            }
+            .modal-lg {
+                max-width: 800px;
+            }
+        }
+        /* 操作按钮行 - 移动端换行 */
+        .d-flex.flex-wrap {
+            gap: 10px;
+        }
+        /* 登录按钮在移动端的布局 */
+        .navbar-nav {
+            align-items: center;
+        }
+        .navbar-nav .btn {
+            margin: 5px 0 !important;
+            width: 100%;
+        }
+        @media (min-width: 992px) {
+            .navbar-nav .btn {
+                width: auto;
+                margin: 0 0 0 10px !important;
+            }
+        }
+        /* 批量操作按钮在移动端垂直排列 */
+        @media (max-width: 767px) {
+            .btn-group-inline {
+                flex-direction: column;
+                width: 100%;
+            }
+            .input-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .input-group .btn {
+                width: 100%;
+            }
+            /* 年度筛选行适配 */
+            .card-header.d-flex {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 10px;
+            }
+            .card-header .d-flex > div {
+                width: 100%;
+            }
+        }
+        /* 工作进展资料两列表格 - 日期与文件名分列 */
+        .progress-table { border: 1px solid #dee2e6; border-radius: 6px; }
+        .progress-table thead th { background: #f8f9fa; font-weight: 600; }
+        .progress-table thead th.progress-date-col,
+        .progress-table thead th.progress-name-col { color: #6c757d; }
+        .progress-table .progress-date-col { min-width: 140px; width: 140px; padding-right: 24px; white-space: nowrap; color: #6c757d; }
+        .progress-table .progress-name-col { min-width: 200px; padding-left: 24px; padding-right: 24px; }
+        .progress-table .progress-op-col { white-space: nowrap; text-align: right; }
+        .progress-table .progress-op-col .btn-group { flex-wrap: nowrap; display: inline-flex; }
+        .form-control-date { min-height: 48px; padding: 12px 16px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">市人大常委会监督协调处 <span class="navbar-version">V1.0</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="index.html">监督议题</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="pishi.html">批示督办</a></li>
+                    <li class="nav-item"><a class="nav-link active text-white" href="minsheng.html">民生实事</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="meiyue.html">每月工作</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="meizhou.html">每周工作</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="falv.html">法律法规</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="jihua.html">工作计划</a></li>
+                </ul>
+                <div class="navbar-nav ms-auto">
+                    <span class="nav-link text-white" id="user-role">当前身份：<b>游客（未登录）</b></span>
+                    <button class="btn btn-outline-light ms-2" id="admin-mgmt-btn" style="display: none;"><i class="fa fa-users"></i> 管理员管理</button>
+                    <button class="btn btn-outline-light ms-2" id="login-btn">管理员登录</button>
+                    <button class="btn btn-outline-light ms-2" id="logout-btn" style="display: none;">退出登录</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5 pb-4">
+        <!-- 1. 年度筛选 + 图表区域（点击标题可折叠） -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 overview-title-toggle" style="cursor: pointer; user-select: none;"><i class="fa fa-chevron-down overview-chevron me-1"></i>监督部门数据概览</h5>
+                <div>
+                    <label for="year-filter" class="me-2">筛选年度：</label>
+                    <select class="form-select d-inline-block w-auto" id="year-filter">
+                        <!-- 动态生成年度选项 -->
+                    </select>
+                </div>
+            </div>
+            <div class="card-body" id="overview-card-body">
+                <div class="chart-container">
+                    <canvas id="stats-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 操作区域（仅管理员可见，默认隐藏） -->
+        <div class="card" id="operation-area" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">数据操作</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <!-- Excel上传 -->
+                    <div class="input-group w-auto flex-grow-1">
+                        <input type="file" class="form-control" id="excel-upload" accept=".xlsx,.xls">
+                        <button class="btn btn-primary" id="upload-btn">
+                            <i class="fa fa-upload"></i> 上传Excel文档
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="download-template-btn"><i class="fa fa-download"></i> 下载模板</button>
+                    </div>
+                    <!-- 批量操作 -->
+                    <button class="btn btn-success operation-btn flex-grow-1 flex-md-grow-0" id="add-btn">
+                        <i class="fa fa-plus"></i> 新增项目
+                    </button>
+                    <button class="btn btn-danger operation-btn flex-grow-1 flex-md-grow-0" id="batch-del-btn">
+                        <i class="fa fa-trash"></i> 批量删除
+                    </button>
+                    <button class="btn btn-info operation-btn" id="dept-mgmt-btn">
+                        <i class="fa fa-sitemap"></i> 部门管理
+                    </button>
+                    <div class="btn-group-inline flex-grow-1 flex-md-grow-0">
+                        <button class="btn btn-secondary operation-btn" id="backup-btn">
+                            <i class="fa fa-database"></i> 备份数据
+                        </button>
+                        <button class="btn btn-dark operation-btn" id="restore-btn">
+                            <i class="fa fa-recycle"></i> 数据恢复
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 内容展示区域（按监督部门分组） -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <h5 class="mb-0">大连市重点民生实事项目</h5>
+                    <div class="batch-bar" id="batch-bar" style="display: none;">
+                        <div class="form-check d-inline-block mb-0">
+                            <input class="form-check-input" type="checkbox" id="select-all">
+                            <label class="form-check-label" for="select-all">全选</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group w-auto" style="min-width: 180px;">
+                    <span class="input-group-text"><i class="fa fa-search"></i></span>
+                    <input type="text" class="form-control" id="search-input" placeholder="模糊搜索">
+                </div>
+            </div>
+            <div class="card-body p-0" id="content-area">
+                <div id="dept-groups">
+                    <!-- 按部门分组的项目与进展资料，由JS动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理员登录模态框 -->
+    <div class="modal fade login-modal" id="login-modal" tabindex="-1" aria-labelledby="login-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="login-modal-title">管理员登录</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="login-form">
+                        <div class="mb-3">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="username" placeholder="请输入管理员用户名" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" id="password" placeholder="请输入管理员密码" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember-me" checked>
+                            <label class="form-check-label" for="remember-me">7日内免登陆</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary w-100 w-md-auto mb-2 mb-md-0" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary w-100 w-md-auto" id="do-login-btn">登录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/修改项目模态框 -->
+    <div class="modal fade" id="project-modal" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal-title">新增民生实事项目</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="project-form">
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">年度</label>
+                                <select class="form-select" name="year" required id="modal-year-select">
+                                    <!-- 动态生成年度选项 -->
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">项目名称</label>
+                                <input type="text" class="form-control" name="name" placeholder="请输入项目名称" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">监督部门</label>
+                                <input type="text" class="form-control" name="department" placeholder="请输入监督部门" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">小组成员名单</label>
+                                <input type="text" class="form-control" name="members" placeholder="如：张三、李四、王五" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">重点监督内容</label>
+                                <textarea class="form-control" name="supervise" rows="3" placeholder="请输入重点监督内容" required></textarea>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">完成情况</label>
+                                <select class="form-select" name="status" required>
+                                    <option value="未开始">未开始</option>
+                                    <option value="进行中">进行中</option>
+                                    <option value="已完成">已完成</option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="hidden" name="id">
+                    </form>
+                </div>
+                <div class="modal-footer flex-wrap">
+                    <button type="button" class="btn btn-secondary w-100 w-md-auto mb-2 mb-md-0" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary w-100 w-md-auto" id="save-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上传进展资料模态框 -->
+    <div class="modal fade" id="progress-upload-modal" tabindex="-1" aria-labelledby="progress-upload-title" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="progress-upload-title">上传工作进展资料</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="progress-upload-form">
+                        <input type="hidden" name="department" id="progress-upload-department">
+                        <div class="mb-3">
+                            <label class="form-label">上传日期（可选，点击选择）</label>
+                            <input type="date" class="form-control form-control-date" name="uploadDate" id="progress-upload-date">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">资料标题</label>
+                            <input type="text" class="form-control" name="title" placeholder="请输入资料标题（可选，默认使用文件名）">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">选择文件（PDF、Word）</label>
+                            <input type="file" class="form-control" name="file" id="progress-upload-file" accept=".pdf,.doc,.docx" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="progress-upload-submit"><i class="fa fa-upload"></i> 上传</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑进展资料模态框 -->
+    <div class="modal fade" id="progress-edit-modal" tabindex="-1" aria-labelledby="progress-edit-title" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="progress-edit-title">编辑进展资料</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="progress-edit-form">
+                        <input type="hidden" name="id" id="progress-edit-id">
+                        <div class="mb-3">
+                            <label class="form-label">上传日期</label>
+                            <input type="date" class="form-control form-control-date" name="uploadDate" id="progress-edit-date">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">资料标题</label>
+                            <input type="text" class="form-control" name="title" id="progress-edit-title-input" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">重新上传文件（可选，留空则不替换）</label>
+                            <input type="file" class="form-control" id="progress-edit-file" accept=".pdf,.doc,.docx">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="progress-edit-submit"><i class="fa fa-save"></i> 保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 部门管理模态框 -->
+    <div class="modal fade" id="dept-modal" tabindex="-1" aria-labelledby="dept-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dept-modal-title">监督部门管理（按ID升序排列：1、2、3…）</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <button class="btn btn-success btn-sm" id="dept-add-btn"><i class="fa fa-plus"></i> 添加部门</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead><tr><th>排序ID</th><th>部门名称</th><th>操作</th></tr></thead>
+                            <tbody id="dept-list-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 新增/编辑部门模态框 -->
+    <div class="modal fade" id="dept-form-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dept-form-title">添加部门</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="dept-form">
+                        <input type="hidden" name="id" id="dept-form-id">
+                        <div class="mb-3">
+                            <label class="form-label">排序ID（数字，用于升序排列，如 1、2、3）</label>
+                            <input type="number" class="form-control" name="sortId" id="dept-form-sortId" min="1" placeholder="如 1">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">部门名称</label>
+                            <input type="text" class="form-control" name="name" id="dept-form-name" required placeholder="如 住建局">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="dept-form-save-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 恢复备份模态框 -->
+    <div class="modal fade" id="restore-modal" tabindex="-1" aria-labelledby="restore-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="restore-modal-title">数据恢复</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">选择备份文件（JSON格式）</label>
+                        <input type="file" class="form-control" id="restore-file" accept=".json">
+                    </div>
+                    <div class="backup-tip">
+                        提示：备份文件为JSON格式，恢复后将覆盖当前所有数据！
+                    </div>
+                </div>
+                <div class="modal-footer flex-wrap">
+                    <button type="button" class="btn btn-secondary w-100 w-md-auto mb-2 mb-md-0" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary w-100 w-md-auto" id="do-restore-btn">确认恢复</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理员管理模态框（仅超级管理员可见） -->
+    <div class="modal fade" id="admin-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">管理员管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <button class="btn btn-success btn-sm" id="admin-add-btn"><i class="fa fa-plus"></i> 新增管理员</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead><tr><th>用户名</th><th>角色</th><th>操作</th></tr></thead>
+                            <tbody id="admin-list-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 新增/编辑管理员模态框 -->
+    <div class="modal fade" id="admin-form-modal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="admin-form-title">新增管理员</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="admin-form">
+                        <input type="hidden" name="id">
+                        <div class="mb-2"><label class="form-label">用户名</label><input type="text" class="form-control" name="username" required></div>
+                        <div class="mb-2"><label class="form-label">密码</label><input type="password" class="form-control" name="password" placeholder="留空则不修改"></div>
+                        <div class="mb-2"><label class="form-label">角色</label>
+                            <select class="form-select" name="role">
+                                <option value="admin">普通管理员</option>
+                                <option value="super_admin">超级管理员</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="admin-save-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 轻量提示框 -->
+    <div class="toast-notice" id="toast-notice"></div>
+
+    <!-- 懒加载非核心JS资源，提升首屏加载速度 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0" defer></script>
+    <script>
+        // 缓存DOM元素引用
+        const DOM = {
+            userRole: document.getElementById('user-role'),
+            loginBtn: document.getElementById('login-btn'),
+            logoutBtn: document.getElementById('logout-btn'),
+            yearFilter: document.getElementById('year-filter'),
+            searchInput: document.getElementById('search-input'),
+            operationArea: document.getElementById('operation-area'),
+            deptGroups: document.getElementById('dept-groups'),
+            addBtn: document.getElementById('add-btn'),
+            batchDelBtn: document.getElementById('batch-del-btn'),
+            selectAll: document.getElementById('select-all'),
+            uploadBtn: document.getElementById('upload-btn'),
+            backupBtn: document.getElementById('backup-btn'),
+            restoreBtn: document.getElementById('restore-btn'),
+            saveBtn: document.getElementById('save-btn'),
+            sortYearBtn: document.getElementById('sort-year-btn'),
+            sortDeptBtn: document.getElementById('sort-dept-btn'),
+            sortStatusBtn: document.getElementById('sort-status-btn'),
+            toastNotice: document.getElementById('toast-notice'),
+            restoreFile: document.getElementById('restore-file'),
+            doRestoreBtn: document.getElementById('do-restore-btn'),
+            rememberMe: document.getElementById('remember-me'),
+            excelUpload: document.getElementById('excel-upload'),
+            doLoginBtn: document.getElementById('do-login-btn'),
+            adminMgmtBtn: document.getElementById('admin-mgmt-btn'),
+            adminListBody: document.getElementById('admin-list-body'),
+            adminAddBtn: document.getElementById('admin-add-btn'),
+            adminForm: document.getElementById('admin-form'),
+            adminFormTitle: document.getElementById('admin-form-title'),
+            adminSaveBtn: document.getElementById('admin-save-btn')
+        };
+
+        // 本地存储核心配置
+        const STORAGE_KEY = 'ms_project_data';
+        const LOGIN_STATUS_KEY = 'ms_admin_login_status';
+        const DEFAULT_DATA = [
+            { id: 1, year: 2025, name: "老旧小区改造", department: "住建局", members: "张军、李红、王强", supervise: "改造进度、工程质量、居民满意度", status: "进行中" },
+            { id: 2, year: 2025, name: "社区养老服务中心建设", department: "民政局", members: "刘芳、赵伟、孙丽", supervise: "场地建设、人员配置、服务落地", status: "已完成" },
+            { id: 3, year: 2024, name: "农村饮水安全工程", department: "水利局", members: "陈明、周杰、吴丹", supervise: "水质检测、管网铺设、供水稳定性", status: "已完成" },
+            { id: 4, year: 2023, name: "义务教育学校扩建", department: "教育局", members: "郑华、马涛、钱静", supervise: "施工进度、师资配套、招生计划", status: "已完成" }
+        ];
+
+        // 全局变量
+        let projectData = [];
+        let progressData = [];
+        let departmentsData = [];
+        let currentId = 5;
+        let isAdmin = false;
+        let currentUserRole = '';
+        let currentUsername = '';
+
+        function debounce(fn, ms) {
+            let t;
+            return function () { clearTimeout(t); t = setTimeout(() => fn.apply(this, arguments), ms); };
+        }
+        // 带 Token 的 fetch，401 时自动清除登录状态
+        async function apiFetch(url, options = {}) {
+            const token = getToken();
+            const headers = { ...(options.headers || {}) };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            const res = await fetch(url, { ...options, headers });
+            if (res.status === 401) {
+                const hadToken = !!token;
+                clearToken();
+                isAdmin = false;
+                currentUserRole = '';
+                if (DOM.adminMgmtBtn) DOM.adminMgmtBtn.style.display = 'none';
+                DOM.userRole.innerHTML = '当前身份：<b>游客（未登录）</b>';
+                DOM.loginBtn.style.display = '';
+                DOM.logoutBtn.style.display = 'none';
+                DOM.operationArea.style.display = 'none';
+                if (hadToken) showToast('您已被强制下线，请重新登录');
+                throw new Error('UNAUTHORIZED');
+            }
+            return res;
+        }
+        let chartInstance = null;
+        let sortConfig = {
+            field: 'year',
+            type: 'desc'
+        };
+        const adminAccount = { username: "1645", password: "4688633" };
+        const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+
+        const MORANDI_COLORS = [
+            { bg: '#74C69D', border: '#52B788', text: '#FFFFFF' },
+            { bg: '#4CC9F0', border: '#4361EE', text: '#FFFFFF' },
+            { bg: '#F72585', border: '#7209B7', text: '#FFFFFF' },
+            { bg: '#F8961E', border: '#F9844A', text: '#FFFFFF' },
+            { bg: '#94A3B8', border: '#64748B', text: '#FFFFFF' },
+            { bg: '#FFD166', border: '#FFC107', text: '#333333' },
+            { bg: '#06D6A0', border: '#059669', text: '#FFFFFF' }
+        ];
+
+        // 工具函数
+        function showToast(message, duration = 2000) {
+            DOM.toastNotice.textContent = message;
+            DOM.toastNotice.classList.add('show');
+            setTimeout(() => {
+                DOM.toastNotice.classList.remove('show');
+            }, duration);
+        }
+        function getToken() {
+            const expiry = localStorage.getItem('tokenExpiry');
+            if (localStorage.getItem('token') && expiry && Date.now() > parseInt(expiry, 10)) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('tokenExpiry');
+            }
+            return localStorage.getItem('token') || sessionStorage.getItem('token');
+        }
+        function setToken(token, rememberMe) {
+            if (rememberMe) {
+                localStorage.setItem('token', token);
+                localStorage.setItem('tokenExpiry', String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+                sessionStorage.removeItem('token');
+            } else {
+                sessionStorage.setItem('token', token);
+                localStorage.removeItem('token');
+                localStorage.removeItem('tokenExpiry');
+            }
+        }
+        function clearToken() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('tokenExpiry');
+            sessionStorage.removeItem('token');
+        }
+
+// ========== 加载项目数据 ==========
+async function loadDataFromServer(year = 'all') {
+    try {
+        const res = await fetch(`/api/projects?year=${year}`);
+        const result = await res.json();
+        if (result.code === 0) {
+            projectData = result.data;
+            currentId = projectData.length ? Math.max(...projectData.map(item => item.id)) + 1 : 1;
+            return projectData;
+        } else {
+            showToast('加载数据失败：' + result.msg);
+            return [];
+        }
+    } catch (e) {
+        console.error('加载数据失败：', e);
+        showToast('请检查后端服务是否启动！');
+        return [];
+    }
+}
+
+// ========== 加载部门数据 ==========
+async function loadDepartmentsFromServer() {
+    try {
+        var res = await fetch('/api/departments');
+        var result = await res.json();
+        if (result.code === 0) {
+            departmentsData = result.data || [];
+            return departmentsData;
+        }
+        return [];
+    } catch (e) {
+        console.error('加载部门失败：', e);
+        return [];
+    }
+}
+
+// ========== 加载进展资料数据 ==========
+async function loadProgressFromServer() {
+    try {
+        const res = await fetch('/api/minsheng/progress');
+        const result = await res.json();
+        if (result.code === 0) {
+            progressData = result.data || [];
+            return progressData;
+        }
+        return [];
+    } catch (e) {
+        console.error('加载进展资料失败：', e);
+        return [];
+    }
+}
+
+// ========== 刷新视图（项目+进展+部门） ==========
+async function refreshView() {
+    await loadDataFromServer(DOM.yearFilter ? DOM.yearFilter.value : 'all');
+    await loadProgressFromServer();
+    await loadDepartmentsFromServer();
+    var filteredData = applyFilters();
+    renderDeptGroups(filteredData);
+    if (typeof initChart === 'function') initChart(filteredData);
+}
+
+// ========== 改造登录逻辑 ==========
+DOM.doLoginBtn.addEventListener('click', async () => {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const rememberMe = DOM.rememberMe.checked;
+
+    if (!username || !password) {
+        showToast('请输入用户名和密码！');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, rememberMe })
+        });
+        const result = await res.json();
+
+        if (result.code === 0) {
+            setToken(result.data.token, rememberMe);
+            isAdmin = true;
+            currentUserRole = result.data.role || 'admin';
+            currentUsername = result.data.username || '';
+            const roleText = currentUserRole === 'super_admin' ? '超级管理员' : '管理员';
+            DOM.userRole.innerHTML = `当前身份：<b>${roleText}（${result.data.username}）</b>`;
+            DOM.loginBtn.style.display = 'none';
+            DOM.logoutBtn.style.display = '';
+            DOM.operationArea.style.display = '';
+            DOM.adminMgmtBtn.style.display = currentUserRole === 'super_admin' ? '' : 'none';
+            bootstrap.Modal.getInstance(document.getElementById('login-modal')).hide();
+            
+            // 重新加载数据
+            await loadDataFromServer(DOM.yearFilter ? DOM.yearFilter.value : 'all');
+            await loadProgressFromServer();
+            await loadDepartmentsFromServer();
+            var filteredData = applyFilters();
+            renderDeptGroups(filteredData);
+            initChart(filteredData);
+            showToast('登录成功！');
+        } else {
+            showToast(result.msg);
+        }
+    } catch (e) {
+        showToast('登录失败，请检查后端服务！');
+    }
+});
+
+// ========== 改造保存项目逻辑 ==========
+DOM.saveBtn.addEventListener('click', async () => {
+    const form = document.getElementById('project-form');
+    const formData = Object.fromEntries(new FormData(form).entries());
+    const id = formData.id;
+
+    try {
+        let res;
+        if (id) {
+            res = await apiFetch(`/api/projects/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+        } else {
+            res = await apiFetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+        }
+
+        const result = await res.json();
+        if (result.code === 0) {
+            bootstrap.Modal.getInstance(document.getElementById('project-modal')).hide();
+            showToast(id ? '修改成功！' : '新增成功！');
+            
+            // 重新加载数据
+            projectData = await loadDataFromServer(DOM.yearFilter ? DOM.yearFilter.value : 'all');
+            var filteredData = applyFilters();
+            renderDeptGroups(filteredData);
+            initChart(filteredData);
+            form.reset();
+            form.querySelector('input[name="id"]').value = '';
+        } else {
+            showToast(result.msg);
+        }
+    } catch (e) {
+        showToast('保存失败，请检查后端服务！');
+    }
+});
+
+// ========== 进展资料上传 ==========
+document.getElementById('progress-upload-submit').addEventListener('click', async function () {
+    var dept = document.getElementById('progress-upload-department').value.trim();
+    var title = document.querySelector('#progress-upload-form [name="title"]').value.trim();
+    var uploadDate = document.getElementById('progress-upload-date').value.trim();
+    var fileInput = document.getElementById('progress-upload-file');
+    if (!dept) { showToast('监督部门不能为空'); return; }
+    if (!fileInput.files || !fileInput.files[0]) { showToast('请选择文件'); return; }
+    if (!uploadDate) {
+        var d = new Date();
+        uploadDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    var fd = new FormData();
+    fd.append('department', dept);
+    fd.append('title', title);
+    fd.append('uploadDate', uploadDate);
+    fd.append('file', fileInput.files[0]);
+    try {
+        var res = await apiFetch('/api/minsheng/progress/upload', { method: 'POST', body: fd });
+        var result = await res.json();
+        if (result.code === 0) {
+            bootstrap.Modal.getInstance(document.getElementById('progress-upload-modal')).hide();
+            progressData = await loadProgressFromServer();
+            var filteredData = applyFilters();
+            renderDeptGroups(filteredData);
+            showToast('上传成功');
+        } else showToast(result.msg || '上传失败');
+    } catch (e) { showToast('上传失败，请检查后端服务'); }
+});
+
+// ========== 进展资料编辑 ==========
+document.getElementById('progress-edit-submit').addEventListener('click', async function () {
+    var id = document.getElementById('progress-edit-id').value;
+    var title = document.getElementById('progress-edit-title-input').value.trim();
+    var uploadDate = document.getElementById('progress-edit-date').value.trim();
+    var fileInput = document.getElementById('progress-edit-file');
+    if (!id || !title) { showToast('标题不能为空'); return; }
+    try {
+        if (fileInput.files && fileInput.files[0]) {
+            var fd = new FormData();
+            fd.append('title', title);
+            fd.append('uploadDate', uploadDate);
+            fd.append('file', fileInput.files[0]);
+            var res = await apiFetch('/api/minsheng/progress/' + id + '/replace-file', { method: 'POST', body: fd });
+            var result = await res.json();
+            if (result.code === 0) {
+                bootstrap.Modal.getInstance(document.getElementById('progress-edit-modal')).hide();
+                document.getElementById('progress-edit-file').value = '';
+                progressData = await loadProgressFromServer();
+                var filteredData = applyFilters();
+                renderDeptGroups(filteredData);
+                showToast('修改并重新上传成功');
+            } else showToast(result.msg || '修改失败');
+        } else {
+            var res = await apiFetch('/api/minsheng/progress/' + id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: title, uploadDate: uploadDate || undefined })
+            });
+            var result = await res.json();
+            if (result.code === 0) {
+                bootstrap.Modal.getInstance(document.getElementById('progress-edit-modal')).hide();
+                progressData = await loadProgressFromServer();
+                var filteredData = applyFilters();
+                renderDeptGroups(filteredData);
+                showToast('修改成功');
+            } else showToast(result.msg || '修改失败');
+        }
+    } catch (e) { showToast('修改失败'); }
+});
+
+// ========== 页面初始化 ==========
+
+        function getMorandiColor(deptName, index) {
+            const deptIndex = ['住建局', '民政局', '水利局', '教育局'].indexOf(deptName);
+            return MORANDI_COLORS[deptIndex >= 0 ? deptIndex : (index % MORANDI_COLORS.length)];
+        }
+
+        // 核心功能函数
+        function updateYearSelectors() {
+            const years = [...new Set(projectData.map(item => item.year))].sort((a, b) => b - a);
+            const modalYearSelect = document.getElementById('modal-year-select');
+            
+            let filterHtml = '<option value="all">全部年度</option>';
+            let modalHtml = '';
+            
+            years.forEach(year => {
+                const isSelected = year === years[0] ? 'selected' : '';
+                filterHtml += `<option value="${year}" ${isSelected}>${year}年度</option>`;
+                modalHtml += `<option value="${year}" ${isSelected}>${year}</option>`;
+            });
+
+            const maxYear = years.length > 0 ? years[0] : 2025;
+            modalHtml += `<option value="${maxYear + 1}">${maxYear + 1}</option>`;
+
+            DOM.yearFilter.innerHTML = filterHtml;
+            modalYearSelect.innerHTML = modalHtml;
+        }
+
+        function sortData(data) {
+            return [...data].sort((a, b) => {
+                let valueA, valueB;
+                
+                switch (sortConfig.field) {
+                    case 'year':
+                        valueA = a.year;
+                        valueB = b.year;
+                        break;
+                    case 'department':
+                        valueA = a.department;
+                        valueB = b.department;
+                        break;
+                    case 'status':
+                        const statusOrder = { '未开始': 0, '进行中': 1, '已完成': 2 };
+                        valueA = statusOrder[a.status];
+                        valueB = statusOrder[b.status];
+                        break;
+                    default:
+                        valueA = a.year;
+                        valueB = b.year;
+                }
+
+                if (valueA === valueB) {
+                    return sortConfig.type === 'desc' ? b.id - a.id : a.id - b.id;
+                }
+
+                if (typeof valueA === 'string') {
+                    return sortConfig.type === 'desc' 
+                        ? valueB.localeCompare(valueA, 'zh-CN') 
+                        : valueA.localeCompare(valueB, 'zh-CN');
+                } else {
+                    return sortConfig.type === 'desc' ? valueB - valueA : valueA - valueB;
+                }
+            });
+        }
+
+        async function moveItem(id, direction) {
+            const numericId = parseInt(id);
+            const index = projectData.findIndex(item => item.id === numericId);
+            if (index === -1) { showToast('未找到该项目！'); return; }
+            if ((direction === 'up' && index === 0) || (direction === 'down' && index === projectData.length - 1)) {
+                showToast(`无法${direction === 'up' ? '上移' : '下移'}，已到${direction === 'up' ? '顶部' : '底部'}`);
+                return;
+            }
+            const swapIndex = direction === 'up' ? index - 1 : index + 1;
+            [projectData[index], projectData[swapIndex]] = [projectData[swapIndex], projectData[index]];
+            const orderedIds = projectData.map(p => p.id);
+            try {
+                const res = await apiFetch('/api/projects/reorder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderedIds })
+                });
+                const result = await res.json();
+                if (result.code === 0) {
+                    const filteredData = applyFilters();
+                    renderDeptGroups(filteredData);
+                    initChart(filteredData);
+                    showToast(`项目已${direction === 'up' ? '上移' : '下移'}`);
+                } else showToast(result.msg);
+            } catch (e) { showToast('操作失败，请检查后端服务！'); }
+        }
+
+        function renderDeptGroups(data) {
+            const batchBar = document.getElementById('batch-bar');
+            if (batchBar) batchBar.style.display = isAdmin ? '' : 'none';
+
+            if (data.length === 0) {
+                DOM.deptGroups.innerHTML = '<div class="text-center py-5 text-muted">暂无项目数据</div>';
+                return;
+            }
+
+            // 按监督部门分组：筛选年度时只显示有该年度项目的部门；全部年度时才包含仅有进展资料的部门
+            const deptMap = {};
+            data.forEach(function (item) {
+                const dept = item.department || '未分类';
+                if (!deptMap[dept]) deptMap[dept] = [];
+                deptMap[dept].push(item);
+            });
+            const yearFilter = DOM.yearFilter ? DOM.yearFilter.value : 'all';
+            if (yearFilter === 'all') {
+                progressData.forEach(function (p) {
+                    const dept = p.department || '未分类';
+                    if (!deptMap[dept]) deptMap[dept] = [];
+                });
+            }
+
+            function getDeptSortId(name) {
+                var d = departmentsData.find(function (x) { return x.name === name; });
+                return d && typeof d.id === 'number' ? d.id : 9999;
+            }
+            const depts = Object.keys(deptMap).sort(function (a, b) {
+                var idA = getDeptSortId(a), idB = getDeptSortId(b);
+                if (idA !== idB) return idA - idB;
+                return a.localeCompare(b, 'zh-CN');
+            });
+            let fullHtml = '';
+            depts.forEach(function (dept) {
+                const projects = deptMap[dept];
+                var progressList = progressData.filter(function (p) { return p.department === dept; }).sort(function (a, b) {
+                    var da = a.uploadDate || (a.createdAt ? a.createdAt.slice(0, 10) : '');
+                    var db = b.uploadDate || (b.createdAt ? b.createdAt.slice(0, 10) : '');
+                    return (db || '').localeCompare(da || '');
+                });
+                let projectsRows = '';
+                projects.forEach(function (item) {
+                    const cbTd = isAdmin ? '<td><input type="checkbox" class="row-checkbox" data-id="' + item.id + '"></td>' : '';
+                    const opTd = isAdmin ? '<td><button class="btn btn-sm btn-outline-primary edit-btn" data-id="' + item.id + '"><i class="fa fa-edit"></i> 编辑</button> <button class="btn btn-sm btn-outline-danger del-btn" data-id="' + item.id + '"><i class="fa fa-trash"></i> 删除</button></td>' : '';
+                    projectsRows += '<tr>' + cbTd + '<td>' + item.year + '</td><td>' + item.name + '</td><td>' + item.members + '</td><td>' + item.supervise + '</td><td>' + item.status + '</td>' + opTd + '</tr>';
+                });
+                const opHeader = isAdmin ? '<th style="min-width: 120px;">操作</th>' : '';
+                function formatDateChinese(s) {
+                    if (!s) return '-';
+                    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+                    if (m) return m[1] + '年' + parseInt(m[2], 10) + '月' + parseInt(m[3], 10) + '日';
+                    var m2 = s.match(/^(\d{4})-(\d{1,2})/);
+                    if (m2) return m2[1] + '年' + parseInt(m2[2], 10) + '月';
+                    return s;
+                }
+                let progressHtml = '<table class="table table-sm progress-table mb-0"><thead><tr><th class="progress-date-col">日期</th><th class="progress-name-col">文件名</th><th class="progress-op-col">操作</th></tr></thead><tbody>';
+                progressList.forEach(function (p) {
+                    const ext = (p.fileType || 'pdf').toUpperCase();
+                    var rawDate = p.uploadDate || (p.createdAt ? p.createdAt.slice(0, 10) : '');
+                    var dateStr = formatDateChinese(rawDate || '');
+                    var fileName = (p.title || p.originalName || '未命名');
+                    progressHtml += '<tr class="progress-item">';
+                    progressHtml += '<td class="progress-date-col">' + dateStr + '</td>';
+                    progressHtml += '<td class="progress-name-col"><i class="fa fa-file-' + (p.fileType === 'pdf' ? 'pdf' : 'word') + '-o text-danger me-1"></i>' + fileName + ' <span class="badge bg-secondary">' + ext + '</span></td>';
+                    progressHtml += '<td class="progress-op-col"><div class="btn-group btn-group-sm">';
+                    progressHtml += '<a href="minsheng-progress-detail.html?id=' + p.id + '" target="_blank" class="btn btn-outline-primary btn-sm"><i class="fa fa-eye"></i> 预览</a>';
+                    if (isAdmin) {
+                        progressHtml += '<button class="btn btn-outline-secondary btn-sm progress-edit-btn" data-id="' + p.id + '"><i class="fa fa-edit"></i> 修改</button>';
+                        progressHtml += '<button class="btn btn-outline-danger btn-sm progress-del-btn" data-id="' + p.id + '"><i class="fa fa-trash"></i> 删除</button>';
+                    }
+                    progressHtml += '<a href="/api/minsheng/progress/download/' + p.id + '" class="btn btn-outline-info btn-sm" target="_blank"><i class="fa fa-download"></i> 下载</a>';
+                    progressHtml += '</div></td></tr>';
+                });
+                progressHtml += '</tbody></table>';
+                const uploadBtn = isAdmin ? '<button class="btn btn-sm btn-primary progress-upload-btn" data-dept="' + dept + '"><i class="fa fa-upload"></i> 上传工作进展资料</button>' : '';
+                var deptInfo = departmentsData.find(function (x) { return x.name === dept; });
+                var deptLabel = deptInfo && deptInfo.id != null ? (deptInfo.id + '. ' + dept) : dept;
+                fullHtml += '<div class="dept-card card mb-4"><div class="card-header dept-card-header"><h6 class="mb-0">' + deptLabel + '</h6></div><div class="card-body p-0">';
+                fullHtml += '<div class="table-responsive"><table class="table table-hover table-striped mb-0"><thead class="table-header-blue"><tr>' + (isAdmin ? '<th style="width: 40px;"></th>' : '') + '<th style="width: 80px;">年度</th><th style="min-width: 120px;">项目名称</th><th style="min-width: 150px;">小组成员名单</th><th style="min-width: 180px;">重点监督内容</th><th style="width: 90px;">完成情况</th>' + opHeader + '</tr></thead><tbody>' + projectsRows + '</tbody></table></div>';
+                fullHtml += '<div class="p-3 border-top"><h6 class="mb-2">工作进展资料</h6><div class="progress-list mb-2">' + (progressList.length ? progressHtml : (isAdmin ? '' : '<div class="text-muted small">暂无进展资料</div>')) + '</div>' + uploadBtn + '</div></div></div>';
+            });
+            DOM.deptGroups.innerHTML = fullHtml;
+        }
+
+        function filterDataByYear(year) {
+            if (year === 'all') return [...projectData];
+            return projectData.filter(item => item.year === parseInt(year));
+        }
+
+        function filterDataBySearch(data, keyword) {
+            keyword = (keyword || '').trim().toLowerCase();
+            if (!keyword) return data;
+            return data.filter(item => {
+                const s = String(item.year || '') + ' ' + (item.name || '') + ' ' + (item.department || '') + ' ' + (item.members || '') + ' ' + (item.supervise || '') + ' ' + (item.status || '');
+                return s.toLowerCase().indexOf(keyword) !== -1;
+            });
+        }
+
+        function applyFilters() {
+            let data = filterDataByYear(DOM.yearFilter.value);
+            data = filterDataBySearch(data, DOM.searchInput && DOM.searchInput.value);
+            return sortData(data);
+        }
+
+        function initChart(data) {
+            if (typeof Chart === 'undefined') {
+                setTimeout(() => initChart(data), 100);
+                return;
+            }
+            if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
+            renderChart(data);
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('stats-chart').getContext('2d');
+            const deptStats = {};
+            
+            data.forEach(item => {
+                if (!deptStats[item.department]) {
+                    deptStats[item.department] = 0;
+                }
+                deptStats[item.department]++;
+            });
+
+            const deptNames = Object.keys(deptStats);
+            const datasets = [{
+                label: '项目总数',
+                data: deptNames.map(dept => deptStats[dept]),
+                backgroundColor: deptNames.map((dept, index) => {
+                    const color = getMorandiColor(dept, index);
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                    gradient.addColorStop(0, color.bg);
+                    gradient.addColorStop(1, color.border);
+                    return gradient;
+                }),
+                borderColor: deptNames.map((dept, index) => getMorandiColor(dept, index).border),
+                borderWidth: 2,
+                borderRadius: 8,
+                borderSkipped: false,
+                hoverOffset: 10,
+                datalabels: {
+                    display: true,
+                    align: 'center',
+                    anchor: 'center',
+                    color: deptNames.map((dept, index) => getMorandiColor(dept, index).text),
+                    font: {
+                        family: 'Microsoft YaHei',
+                        weight: 'bold',
+                        size: 16
+                    },
+                    formatter: (value) => value
+                }
+            }];
+
+            if (chartInstance) chartInstance.destroy();
+            window.Chart.register(window.ChartDataLabels);
+
+            chartInstance = new window.Chart(ctx, {
+                type: 'bar',
+                data: { labels: deptNames, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 800, easing: 'easeOutQuart' },
+                    datasets: {
+                        bar: {
+                            barPercentage: 0.5,
+                            categoryPercentage: 0.65,
+                            maxBarThickness: 56
+                        }
+                    },
+                    layout: {
+                        padding: { left: 12, right: 12, top: 8, bottom: 8 }
+                    },
+                    plugins: {
+                        title: { 
+                            display: true, 
+                            text: '各监督部门项目数量统计', 
+                            font: { size: 18, weight: 'bold', family: 'Microsoft YaHei' },
+                            padding: { top: 10, bottom: 20 },
+                            color: '#333'
+                        },
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            padding: 12,
+                            cornerRadius: 8,
+                            boxPadding: 4
+                        },
+                        datalabels: { className: 'chart-data-label' }
+                    },
+                    scales: {
+                        y: { 
+                            display: false, 
+                            beginAtZero: true 
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { 
+                                display: true, 
+                                font: { size: 13, weight: '600', family: 'Microsoft YaHei' }, 
+                                color: '#555',
+                                padding: 12,
+                                maxRotation: 0
+                            },
+                            border: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 事件绑定
+        function bindEvents() {
+            // 数据概览：点击标题折叠/展开
+            var overviewToggle = document.querySelector('.overview-title-toggle');
+            var overviewBody = document.getElementById('overview-card-body');
+            var overviewChevron = document.querySelector('.overview-chevron');
+            if (overviewToggle && overviewBody && overviewChevron) {
+                overviewToggle.addEventListener('click', function () {
+                    var hidden = overviewBody.style.display === 'none';
+                    overviewBody.style.display = hidden ? '' : 'none';
+                    overviewChevron.className = hidden ? 'fa fa-chevron-down overview-chevron me-1' : 'fa fa-chevron-right overview-chevron me-1';
+                });
+            }
+            // 登录按钮
+            DOM.loginBtn.addEventListener('click', () => {
+                const modal = new bootstrap.Modal(document.getElementById('login-modal'));
+                modal.show();
+            });
+
+            document.getElementById('login-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                DOM.doLoginBtn.click();
+            });
+
+            // 退出登录
+            DOM.logoutBtn.addEventListener('click', async () => {
+                var token = getToken();
+                if (token) {
+                    try { await fetch('/api/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }); } catch (e) {}
+                }
+                clearToken();
+                isAdmin = false;
+                currentUserRole = '';
+                DOM.adminMgmtBtn.style.display = 'none';
+                DOM.userRole.innerHTML = '当前身份：<b>游客（未登录）</b>';
+                DOM.loginBtn.style.display = '';
+                DOM.logoutBtn.style.display = 'none';
+                DOM.operationArea.style.display = 'none';
+                showToast('已退出登录！');
+            });
+
+            // 年度筛选
+            DOM.yearFilter.addEventListener('change', () => {
+                const sortedData = applyFilters();
+                renderDeptGroups(sortedData);
+                initChart(sortedData);
+            });
+            // 模糊搜索（防抖 250ms 降低渲染频率）
+            if (DOM.searchInput) {
+                DOM.searchInput.addEventListener('input', debounce(() => {
+                    const sortedData = applyFilters();
+                    renderDeptGroups(sortedData);
+                    initChart(sortedData);
+                }, 250));
+            }
+
+            // 新增项目
+            DOM.addBtn.addEventListener('click', () => {
+                const modal = new bootstrap.Modal(document.getElementById('project-modal'));
+                document.getElementById('modal-title').textContent = '新增民生实事项目';
+                document.getElementById('project-form').reset();
+                document.querySelector('input[name="id"]').value = '';
+                modal.show();
+            });
+
+            // 保存项目（由上方 API 版本 DOM.saveBtn 处理）
+
+            // 部门卡片内编辑/删除/进展资料操作（事件委托）
+            DOM.deptGroups.addEventListener('click', (e) => {
+                if (!isAdmin) return;
+
+                const target = e.target.closest('.edit-btn');
+                const delTarget = e.target.closest('.del-btn');
+                const moveUp = e.target.closest('.move-up-btn');
+                const moveDown = e.target.closest('.move-down-btn');
+
+                // 编辑
+                if (target) {
+                    const id = parseInt(target.dataset.id);
+                    const item = projectData.find(item => item.id === id);
+                    if (item) {
+                        const modal = new bootstrap.Modal(document.getElementById('project-modal'));
+                        document.getElementById('modal-title').textContent = '编辑民生实事项目';
+                        document.querySelector('input[name="id"]').value = item.id;
+                        document.querySelector('select[name="year"]').value = item.year;
+                        document.querySelector('input[name="name"]').value = item.name;
+                        document.querySelector('input[name="department"]').value = item.department;
+                        document.querySelector('input[name="members"]').value = item.members;
+                        document.querySelector('textarea[name="supervise"]').value = item.supervise;
+                        document.querySelector('select[name="status"]').value = item.status;
+                        modal.show();
+                    }
+                }
+
+                // 删除
+                if (delTarget) {
+                    const id = parseInt(delTarget.dataset.id);
+                    if (confirm('确定要删除该项目吗？')) {
+                        apiFetch(`/api/projects/${id}`, { method: 'DELETE' })
+                            .then(r => r.json())
+                            .then(async (result) => {
+                                if (result.code === 0) {
+                                    projectData = await loadDataFromServer('all');
+                                    const filteredData = applyFilters();
+                                    renderDeptGroups(filteredData);
+                                    initChart(filteredData);
+                                    showToast('项目已删除！');
+                                } else showToast(result.msg);
+                            })
+                            .catch(() => showToast('删除失败，请检查后端服务！'));
+                    }
+                }
+
+                // 上下移动
+                // 上传进展资料
+                var uploadBtn = e.target.closest('.progress-upload-btn');
+                if (uploadBtn) {
+                    document.getElementById('progress-upload-department').value = uploadBtn.dataset.dept;
+                    document.getElementById('progress-upload-form').reset();
+                    document.getElementById('progress-upload-department').value = uploadBtn.dataset.dept;
+                    document.getElementById('progress-upload-file').value = '';
+                    var today = new Date();
+                    document.getElementById('progress-upload-date').value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+                    new bootstrap.Modal(document.getElementById('progress-upload-modal')).show();
+                    return;
+                }
+                // 编辑进展资料
+                var editProgressBtn = e.target.closest('.progress-edit-btn');
+                if (editProgressBtn) {
+                    var pid = parseInt(editProgressBtn.dataset.id);
+                    var prog = progressData.find(function (x) { return x.id === pid; });
+                    if (prog) {
+                        document.getElementById('progress-edit-id').value = prog.id;
+                        document.getElementById('progress-edit-date').value = prog.uploadDate || (prog.createdAt ? prog.createdAt.slice(0, 10) : '');
+                        document.getElementById('progress-edit-title-input').value = prog.title || prog.originalName || '';
+                        new bootstrap.Modal(document.getElementById('progress-edit-modal')).show();
+                    }
+                    return;
+                }
+                // 删除进展资料
+                var delProgressBtn = e.target.closest('.progress-del-btn');
+                if (delProgressBtn) {
+                    var pid = parseInt(delProgressBtn.dataset.id);
+                    if (confirm('确定要删除该进展资料吗？')) {
+                        apiFetch('/api/minsheng/progress/' + pid, { method: 'DELETE' })
+                            .then(function (r) { return r.json(); })
+                            .then(async function (result) {
+                                if (result.code === 0) {
+                                    progressData = await loadProgressFromServer();
+                                    var filteredData = applyFilters();
+                                    renderDeptGroups(filteredData);
+                                    showToast('已删除');
+                                } else showToast(result.msg);
+                            })
+                            .catch(function () { showToast('删除失败'); });
+                    }
+                    return;
+                }
+            });
+
+            // 批量删除
+            DOM.batchDelBtn.addEventListener('click', async () => {
+                const checked = document.querySelectorAll('.row-checkbox:checked');
+                if (checked.length === 0) {
+                    showToast('请选择要删除的项目！');
+                    return;
+                }
+                if (confirm(`确定要删除选中的${checked.length}个项目吗？`)) {
+                    const ids = Array.from(checked).map(cb => parseInt(cb.dataset.id));
+                    try {
+                        const res = await apiFetch('/api/projects/batch-delete', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ids })
+                        });
+                        const result = await res.json();
+                        if (result.code === 0) {
+                            projectData = await loadDataFromServer('all');
+                            const filteredData = applyFilters();
+                            renderDeptGroups(filteredData);
+                            initChart(filteredData);
+                            showToast(`已删除${checked.length}个项目！`);
+                        } else showToast(result.msg);
+                    } catch (e) { showToast('批量删除失败，请检查后端服务！'); }
+                }
+            });
+
+            // 全选/取消全选
+            DOM.selectAll.addEventListener('change', () => {
+                const checkboxes = document.querySelectorAll('.row-checkbox');
+                checkboxes.forEach(cb => {
+                    cb.checked = DOM.selectAll.checked;
+                });
+            });
+
+            // 上传Excel
+            DOM.uploadBtn.addEventListener('click', async () => {
+                const file = DOM.excelUpload?.files[0];
+                if (!file) {
+                    showToast('请选择要上传的Excel文件！');
+                    return;
+                }
+                function doParse() {
+                    const reader = new FileReader();
+                    reader.onload = async (ev) => {
+                        try {
+                            if (typeof XLSX === 'undefined') {
+                                showToast('Excel 解析库加载中，请稍后再试');
+                                return;
+                            }
+                            const wb = XLSX.read(ev.target.result, { type: 'binary' });
+                            const ws = wb.Sheets[wb.SheetNames[0]];
+                            const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                            if (!rows || rows.length < 2) {
+                                showToast('文件中没有数据行');
+                                return;
+                            }
+                            const headers = rows[0];
+                            const dataRows = rows.slice(1);
+                            const objs = dataRows.map(row => {
+                                const o = {};
+                                headers.forEach((h, i) => {
+                                    if (h != null && row[i] !== undefined && row[i] !== null) o[h] = row[i];
+                                });
+                                return o;
+                            }).filter(o => Object.keys(o).length > 0);
+                            if (objs.length === 0) {
+                                showToast('没有可导入的数据');
+                                return;
+                            }
+                            const res = await apiFetch('/api/projects/import', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ rows: objs })
+                            });
+                            const result = await res.json();
+                            if (result.code === 0) {
+                                showToast('成功导入 ' + result.data.imported + ' 条');
+                                DOM.excelUpload.value = '';
+                                await loadDataFromServer(DOM.yearFilter ? DOM.yearFilter.value : 'all');
+                                const filteredData = applyFilters();
+                                renderDeptGroups(filteredData);
+                                initChart(filteredData);
+                            } else {
+                                showToast(result.msg || '导入失败');
+                            }
+                        } catch (err) {
+                            if (err.message === 'UNAUTHORIZED') return;
+                            showToast('解析或导入失败：' + (err.message || '未知错误'));
+                        }
+                    };
+                    reader.readAsBinaryString(file);
+                }
+                if (typeof XLSX !== 'undefined') {
+                    doParse();
+                    return;
+                }
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+                s.onload = doParse;
+                s.onerror = () => showToast('Excel 解析库加载失败');
+                document.body.appendChild(s);
+            });
+
+            // 下载模板
+            const downloadTemplateBtn = document.getElementById('download-template-btn');
+            if (downloadTemplateBtn) {
+                downloadTemplateBtn.addEventListener('click', async () => {
+                    try {
+                        const res = await fetch('/api/projects/template');
+                        const ct = res.headers.get('Content-Type') || '';
+                        if (ct.indexOf('json') !== -1 || !res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            showToast(err.msg || '下载失败，请重试');
+                            return;
+                        }
+                        const blob = await res.blob();
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = '民生实事项目导入模板.xlsx';
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                        showToast('模板已下载');
+                    } catch (e) {
+                        showToast('下载失败，请检查网络或联系管理员');
+                    }
+                });
+            }
+
+            // 备份数据
+            DOM.backupBtn.addEventListener('click', async () => {
+                try {
+                    const res = await apiFetch('/api/backup');
+                    const result = await res.json();
+                    if (result.code === 0) {
+                        const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' });
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = '民生实事项目备份_' + new Date().toISOString().slice(0,10) + '.json';
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                        showToast('备份文件已下载！');
+                    } else showToast(result.msg);
+                } catch (e) { showToast('备份失败，请检查后端服务！'); }
+            });
+
+            // 恢复备份
+            DOM.restoreBtn.addEventListener('click', () => {
+                const modal = new bootstrap.Modal(document.getElementById('restore-modal'));
+                modal.show();
+            });
+
+            // 部门管理
+            document.getElementById('dept-mgmt-btn').addEventListener('click', async function () {
+                try {
+                    departmentsData = await loadDepartmentsFromServer();
+                    var html = '';
+                    departmentsData.forEach(function (d) {
+                        html += '<tr><td>' + (d.id || '-') + '</td><td>' + (d.name || '') + '</td><td><button class="btn btn-sm btn-outline-primary dept-edit-btn" data-id="' + d.id + '" data-name="' + (d.name || '').replace(/"/g, '&quot;') + '">编辑</button> <button class="btn btn-sm btn-outline-danger dept-del-btn" data-id="' + d.id + '" data-name="' + (d.name || '').replace(/"/g, '&quot;') + '">删除</button></td></tr>';
+                    });
+                    document.getElementById('dept-list-body').innerHTML = html || '<tr><td colspan="3">暂无部门，可添加</td></tr>';
+                    new bootstrap.Modal(document.getElementById('dept-modal')).show();
+                } catch (e) { showToast('加载部门失败'); }
+            });
+
+            document.getElementById('dept-list-body').addEventListener('click', async function (e) {
+                var t = e.target.closest('.dept-edit-btn');
+                if (t) {
+                    document.getElementById('dept-form-title').textContent = '编辑部门';
+                    document.getElementById('dept-form-id').value = t.dataset.id;
+                    document.getElementById('dept-form-sortId').value = t.dataset.id;
+                    document.getElementById('dept-form-name').value = t.dataset.name || '';
+                    new bootstrap.Modal(document.getElementById('dept-form-modal')).show();
+                    return;
+                }
+                t = e.target.closest('.dept-del-btn');
+                if (t) {
+                    if (!confirm('确定删除部门「' + (t.dataset.name || '') + '」？若该部门下有项目或进展资料将无法删除。')) return;
+                    try {
+                        var res = await apiFetch('/api/departments/' + t.dataset.id, { method: 'DELETE' });
+                        var result = await res.json();
+                        if (result.code === 0) {
+                            showToast('已删除');
+                            document.getElementById('dept-mgmt-btn').click();
+                            departmentsData = await loadDepartmentsFromServer();
+                            var fd = applyFilters();
+                            renderDeptGroups(fd);
+                        } else showToast(result.msg);
+                    } catch (err) { showToast('删除失败'); }
+                }
+            });
+
+            document.getElementById('dept-add-btn').addEventListener('click', function () {
+                document.getElementById('dept-form-title').textContent = '添加部门';
+                document.getElementById('dept-form-id').value = '';
+                document.getElementById('dept-form-sortId').value = '';
+                document.getElementById('dept-form-name').value = '';
+                new bootstrap.Modal(document.getElementById('dept-form-modal')).show();
+            });
+
+            document.getElementById('dept-form-save-btn').addEventListener('click', async function () {
+                var id = document.getElementById('dept-form-id').value;
+                var sortId = document.getElementById('dept-form-sortId').value.trim();
+                var name = document.getElementById('dept-form-name').value.trim();
+                if (!name) { showToast('部门名称不能为空'); return; }
+                try {
+                    var res, body = { name: name };
+                    if (sortId) body.id = parseInt(sortId, 10);
+                    if (id) {
+                        res = await apiFetch('/api/departments/' + id, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: sortId ? parseInt(sortId, 10) : undefined, name: name })
+                        });
+                    } else {
+                        res = await apiFetch('/api/departments', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
+                        });
+                    }
+                    var result = await res.json();
+                    if (result.code === 0) {
+                        bootstrap.Modal.getInstance(document.getElementById('dept-form-modal')).hide();
+                        showToast('保存成功');
+                        document.getElementById('dept-mgmt-btn').click();
+                        departmentsData = await loadDepartmentsFromServer();
+                        var fd = applyFilters();
+                        renderDeptGroups(fd);
+                        initChart(fd);
+                    } else showToast(result.msg);
+                } catch (e) { showToast('保存失败'); }
+            });
+
+            // 执行恢复
+            DOM.doRestoreBtn.addEventListener('click', async () => {
+                const file = DOM.restoreFile.files[0];
+                if (!file) { showToast('请选择要恢复的备份文件！'); return; }
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    const arr = Array.isArray(data) ? data : (data.data || []);
+                    const res = await apiFetch('/api/restore', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: arr })
+                    });
+                    const result = await res.json();
+                    if (result.code === 0) {
+                        projectData = await loadDataFromServer('all');
+                        departmentsData = await loadDepartmentsFromServer();
+                        updateYearSelectors();
+                        renderDeptGroups(sortData(applyFilters()));
+                        initChart(sortData(applyFilters()));
+                        bootstrap.Modal.getInstance(document.getElementById('restore-modal')).hide();
+                        DOM.restoreFile.value = '';
+                        showToast('数据恢复成功！');
+                    } else showToast(result.msg);
+                } catch (e) { showToast('恢复失败，文件格式错误或后端异常！'); }
+            });
+
+            // 排序按钮
+            DOM.sortYearBtn.addEventListener('click', () => {
+                sortConfig.field = 'year';
+                sortConfig.type = sortConfig.type === 'desc' ? 'asc' : 'desc';
+                const filteredData = applyFilters();
+                renderDeptGroups(filteredData);
+                showToast(`按年度${sortConfig.type === 'desc' ? '降序' : '升序'}排序`);
+            });
+
+            DOM.sortDeptBtn.addEventListener('click', () => {
+                sortConfig.field = 'department';
+                sortConfig.type = sortConfig.type === 'desc' ? 'asc' : 'desc';
+                const filteredData = applyFilters();
+                renderDeptGroups(filteredData);
+                showToast(`按监督部门${sortConfig.type === 'desc' ? '降序' : '升序'}排序`);
+            });
+
+            DOM.sortStatusBtn.addEventListener('click', () => {
+                sortConfig.field = 'status';
+                sortConfig.type = sortConfig.type === 'desc' ? 'asc' : 'desc';
+                const filteredData = applyFilters();
+                renderDeptGroups(filteredData);
+                showToast(`按完成情况${sortConfig.type === 'desc' ? '降序' : '升序'}排序`);
+            });
+
+            // 管理员管理
+            DOM.adminMgmtBtn.addEventListener('click', async () => {
+                try {
+                    const res = await apiFetch('/api/admin/list');
+                    const result = await res.json();
+                    if (result.code === 0) {
+                        var html = '';
+                        result.data.forEach(function (a) {
+                            var roleLab = a.role === 'super_admin' ? '超级管理员' : '普通管理员';
+                            var isSelf = a.username === currentUsername;
+                            var forceBtn = !isSelf && a.role !== 'super_admin' ? '<button class="btn btn-warning btn-sm force-logout-btn" data-username="' + a.username + '">强制下线</button>' : '';
+                            var editBtn = a.role !== 'super_admin' || isSelf ? '<button class="btn btn-info btn-sm edit-admin-btn" data-id="' + a.id + '" data-username="' + a.username + '" data-role="' + (a.role || 'admin') + '">编辑</button>' : '';
+                            var delBtn = a.role !== 'super_admin' ? '<button class="btn btn-danger btn-sm del-admin-btn" data-id="' + a.id + '" data-username="' + a.username + '">删除</button>' : '';
+                            html += '<tr><td>' + a.username + '</td><td>' + roleLab + '</td><td class="d-flex gap-1">' + forceBtn + editBtn + delBtn + '</td></tr>';
+                        });
+                        DOM.adminListBody.innerHTML = html || '<tr><td colspan="3">暂无管理员</td></tr>';
+                        new bootstrap.Modal(document.getElementById('admin-modal')).show();
+                    }
+                } catch (e) { showToast('加载失败'); }
+            });
+
+            DOM.adminListBody.addEventListener('click', async function (e) {
+                var t = e.target.closest('.force-logout-btn');
+                if (t) {
+                    if (!confirm('确定强制 ' + t.dataset.username + ' 下线？')) return;
+                    try {
+                        const res = await apiFetch('/api/admin/force-logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: t.dataset.username }) });
+                        const result = await res.json();
+                        if (result.code === 0) { showToast('已强制下线'); bootstrap.Modal.getInstance(document.getElementById('admin-modal')).hide(); }
+                        else showToast(result.msg);
+                    } catch (err) {}
+                    return;
+                }
+                t = e.target.closest('.edit-admin-btn');
+                if (t) {
+                    DOM.adminFormTitle.textContent = '编辑管理员';
+                    DOM.adminForm.querySelector('[name="id"]').value = t.dataset.id;
+                    DOM.adminForm.querySelector('[name="username"]').value = t.dataset.username;
+                    DOM.adminForm.querySelector('[name="username"]').readOnly = true;
+                    DOM.adminForm.querySelector('[name="password"]').value = '';
+                    DOM.adminForm.querySelector('[name="password"]').placeholder = '留空则不修改';
+                    DOM.adminForm.querySelector('[name="role"]').value = t.dataset.role;
+                    new bootstrap.Modal(document.getElementById('admin-form-modal')).show();
+                    return;
+                }
+                t = e.target.closest('.del-admin-btn');
+                if (t) {
+                    if (!confirm('确定删除管理员 ' + t.dataset.username + '？')) return;
+                    try {
+                        const res = await apiFetch('/api/admin/' + t.dataset.id, { method: 'DELETE' });
+                        const result = await res.json();
+                        if (result.code === 0) { showToast('已删除'); DOM.adminMgmtBtn.click(); }
+                        else showToast(result.msg);
+                    } catch (err) {}
+                }
+            });
+
+            DOM.adminAddBtn.addEventListener('click', function () {
+                DOM.adminFormTitle.textContent = '新增管理员';
+                DOM.adminForm.reset();
+                DOM.adminForm.querySelector('[name="id"]').value = '';
+                DOM.adminForm.querySelector('[name="username"]').readOnly = false;
+                DOM.adminForm.querySelector('[name="password"]').placeholder = '请输入密码';
+                DOM.adminForm.querySelector('[name="role"]').value = 'admin';
+                new bootstrap.Modal(document.getElementById('admin-form-modal')).show();
+            });
+
+            DOM.adminSaveBtn.addEventListener('click', async function () {
+                var id = DOM.adminForm.querySelector('[name="id"]').value;
+                var username = DOM.adminForm.querySelector('[name="username"]').value.trim();
+                var password = DOM.adminForm.querySelector('[name="password"]').value;
+                var role = DOM.adminForm.querySelector('[name="role"]').value;
+                if (!username) { showToast('请输入用户名'); return; }
+                if (!id && !password) { showToast('请输入密码'); return; }
+                try {
+                    var res, body = { username: username, role: role };
+                    if (id) {
+                        if (password) body.password = password;
+                        res = await apiFetch('/api/admin/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                    } else {
+                        body.password = password;
+                        res = await apiFetch('/api/admin/add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                    }
+                    var result = await res.json();
+                    if (result.code === 0) {
+                        showToast('保存成功');
+                        bootstrap.Modal.getInstance(document.getElementById('admin-form-modal')).hide();
+                        DOM.adminMgmtBtn.click();
+                    } else showToast(result.msg);
+                } catch (err) {}
+            });
+        }
+
+        // 初始化
+        async function init() {
+            const token = getToken();
+            if (token) {
+                try {
+                    const res = await apiFetch('/api/me');
+                    const result = await res.json();
+                    if (result.code === 0) {
+                        isAdmin = true;
+                        currentUserRole = result.data.role || 'admin';
+                        currentUsername = result.data.username || '';
+                        var roleText = currentUserRole === 'super_admin' ? '超级管理员' : '管理员';
+                        DOM.userRole.innerHTML = '当前身份：<b>' + roleText + '（' + result.data.username + '）</b>';
+                        DOM.loginBtn.style.display = 'none';
+                        DOM.logoutBtn.style.display = '';
+                        DOM.operationArea.style.display = '';
+                        DOM.adminMgmtBtn.style.display = currentUserRole === 'super_admin' ? '' : 'none';
+                    } else {
+                        clearToken();
+                        isAdmin = false;
+                    }
+                } catch (e) {
+                    isAdmin = false;
+                }
+            }
+            if (!isAdmin) {
+                DOM.adminMgmtBtn.style.display = 'none';
+                DOM.userRole.innerHTML = '当前身份：<b>游客（未登录）</b>';
+                DOM.loginBtn.style.display = '';
+                DOM.logoutBtn.style.display = 'none';
+                DOM.operationArea.style.display = 'none';
+            }
+            // 加载数据（项目 + 进展资料 + 部门）
+            projectData = await loadDataFromServer('all') || [];
+            progressData = await loadProgressFromServer() || [];
+            departmentsData = await loadDepartmentsFromServer() || [];
+            updateYearSelectors();
+            const filteredData = applyFilters();
+            renderDeptGroups(filteredData);
+            initChart(filteredData);
+            bindEvents();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => init());
+    </script>
+</body>
+</html>
