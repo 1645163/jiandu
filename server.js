@@ -111,7 +111,7 @@ function migrateToJiandu() {
 
 var tokenStore = {};
 
-// 文件读取缓存（写入时失效，减少磁盘 I/O）
+// 文件读取缓存：内存缓存，写入时失效（invalidateCache），进程重启后自动清空
 var fileCache = {};
 function readCache(filePath, readFn) {
   var mtime = 0;
@@ -126,6 +126,12 @@ function invalidateCache(filePath) { delete fileCache[filePath]; }
 // 中间件
 if (compression) app.use(compression());
 app.use(express.json({ limit: '10mb' }));
+
+// API 响应不缓存，避免登录/数据变更后读到旧数据
+app.use('/api', function (req, res, next) {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
 
 // 模板下载路由（需在 static 之前，避免被静态文件拦截）
 app.get('/api/projects/template', function (req, res) {
@@ -181,7 +187,19 @@ app.get('/api/jiandu/template', function (req, res) {
   }
 });
 
-app.use(express.static(path.join(__dirname)));
+// 静态资源：CSS/JS 允许短期缓存减少重复请求，HTML 不缓存便于更新
+app.use(express.static(path.join(__dirname), {
+  maxAge: 0,
+  etag: true,
+  setHeaders: function (res, filePath) {
+    var ext = path.extname(filePath);
+    if (ext === '.css' || ext === '.js') {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    } else if (ext === '.html') {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
 // 默认管理员（超级管理员 1312 + 普通管理员 1645）
 function getDefaultAdmins() {
