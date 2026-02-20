@@ -131,8 +131,8 @@ app.use(express.json({ limit: '10mb' }));
 app.get('/api/projects/template', function (req, res) {
   try {
     var XLSX = require('xlsx');
-    var PROJECT_KEYS = ['year', 'name', 'department', 'members', 'supervise', 'status'];
-    var ws = XLSX.utils.aoa_to_sheet([PROJECT_KEYS]);
+    var PROJECT_HEADERS = ['年度', '项目名称', '监督部门', '小组成员名单', '重点监督内容', '完成情况'];
+    var ws = XLSX.utils.aoa_to_sheet([PROJECT_HEADERS]);
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
     var buf = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
@@ -149,8 +149,7 @@ app.get('/api/projects/template', function (req, res) {
 app.get('/api/pishi/template', function (req, res) {
   try {
     var XLSX = require('xlsx');
-    var PISHI_KEYS = ['qishu', 'laiwenUnit', 'wenhao', 'pishiContent', 'pishiDate', 'leaderDept', 'category', 'luoshiCuoshi', 'completeStatus'];
-    var ws = XLSX.utils.aoa_to_sheet([PISHI_KEYS]);
+    var ws = XLSX.utils.aoa_to_sheet([PISHI_HEADERS]);
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
     var buf = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
@@ -1802,6 +1801,7 @@ app.put('/api/minsheng/progress/:id', requireAuth, function (req, res) {
     if (body.title !== undefined) p.title = String(body.title || '').trim() || p.originalName;
     if (body.department !== undefined) p.department = String(body.department || '').trim();
     if (body.uploadDate !== undefined) p.uploadDate = String(body.uploadDate || '').trim();
+    if (body.pinned !== undefined) p.pinned = !!body.pinned;
     saveMinshengProgress(data);
     res.json(ok(p));
   } catch (e) {
@@ -1831,6 +1831,7 @@ app.post('/api/minsheng/progress/:id/replace-file', requireAuth, minshengUpload.
     if ((body.title || '').trim()) p.title = String(body.title).trim();
     else p.title = rawName;
     if ((body.uploadDate || '').trim()) p.uploadDate = String(body.uploadDate).trim();
+    if ((body.department || '').trim()) p.department = String(body.department).trim();
     saveMinshengProgress(data);
     res.json(ok(p));
   } catch (e) {

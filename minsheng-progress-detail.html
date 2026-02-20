@@ -21,8 +21,14 @@
         .preview-zoom-wrapper { transform-origin: 0 0; width: 100%; height: 82vh; min-height: 600px; }
         .preview-pdf { padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
         .preview-pdf canvas { max-width: 100%; height: auto; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+        .preview-pdf .page-wrapper { margin-bottom: 24px; }
+        .preview-pdf .page-wrapper:last-child { margin-bottom: 0; }
         .preview-iframe { width: 100%; height: 100%; min-height: 500px; border: none; display: block; }
         .preview-html { padding: 24px; max-width: none; margin: 0 auto; width: 100%; min-height: 400px; box-sizing: border-box; }
+        @media print {
+            .navbar, .preview-toolbar, .detail-header { display: none !important; }
+            .preview-container { border: none; height: auto !important; overflow: visible !important; }
+        }
     </style>
 </head>
 <body>
@@ -40,7 +46,7 @@
                     <li class="nav-item"><a class="nav-link nav-module-link" href="meiyue.html">每月工作</a></li>
                     <li class="nav-item"><a class="nav-link nav-module-link" href="meizhou.html">每周工作</a></li>
                     <li class="nav-item"><a class="nav-link nav-module-link" href="falv.html">法律法规</a></li>
-                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">工作计划</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">计划月历</a></li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item"><a class="nav-link text-white" href="minsheng.html"><i class="fa fa-arrow-left"></i> 返回民生实事</a></li>
@@ -60,11 +66,17 @@
             <div class="card mt-4">
                 <div class="preview-toolbar">
                     <span class="page-info" id="page-info"></span>
-                    <div class="zoom-controls">
-                        <button class="btn btn-sm btn-outline-secondary" id="zoom-out">-</button>
-                        <span id="zoom-value">100%</span>
-                        <button class="btn btn-sm btn-outline-secondary" id="zoom-in">+</button>
+                    <div id="page-nav-wrap" class="d-flex align-items-center gap-2" style="display: none;">
+                        <button class="btn btn-sm btn-outline-secondary" id="page-prev" title="上一页"><i class="fa fa-chevron-left"></i></button>
+                        <span id="page-current">1</span> / <span id="page-total">1</span>
+                        <button class="btn btn-sm btn-outline-secondary" id="page-next" title="下一页"><i class="fa fa-chevron-right"></i></button>
                     </div>
+                    <div class="zoom-controls">
+                        <button class="btn btn-sm btn-outline-secondary" id="zoom-out" title="缩小">-</button>
+                        <span id="zoom-value">100%</span>
+                        <button class="btn btn-sm btn-outline-secondary" id="zoom-in" title="放大">+</button>
+                    </div>
+                    <button class="btn btn-outline-secondary btn-sm" id="btn-print" title="打印"><i class="fa fa-print"></i> 打印</button>
                     <button class="btn btn-primary btn-sm btn-download" id="btn-download"><i class="fa fa-download"></i> 下载</button>
                 </div>
                 <div class="preview-container" id="preview-container">
@@ -85,8 +97,11 @@
         (function () {
             var params = new URLSearchParams(window.location.search);
             var id = params.get('id');
+            var isEmbed = params.get('embed') === '1';
             var doc = null;
             var zoom = 100;
+            var pdfNumPages = 0;
+            var pdfPageTops = [];
             var token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
             function apiFetch(url, options) {
@@ -102,7 +117,19 @@
                 fetch('/api/minsheng/progress/' + id).then(function (r) { return r.json(); }).then(function (result) {
                     if (result.code === 0 && result.data) {
                         doc = result.data;
-                        renderHeader();
+                        if (isEmbed) {
+                            document.querySelector('nav.navbar').style.display = 'none';
+                        }
+                        if (!isEmbed) renderHeader();
+                        if (isEmbed) {
+                            document.querySelector('.detail-header').style.display = 'none';
+                            var container = document.querySelector('.container');
+                            container.classList.add('p-0', 'm-0');
+                            container.style.maxWidth = '100%';
+                            var card = document.querySelector('#content .card');
+                            if (card) card.style.marginTop = '0';
+                            document.querySelector('.preview-container').style.minHeight = '85vh';
+                        }
                         loadPreview();
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('content').style.display = 'block';
@@ -170,8 +197,16 @@
                         return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                     }).then(function (pdf) {
                         var numPages = pdf.numPages;
+                        pdfNumPages = numPages;
                         pageInfo.textContent = '共 ' + numPages + ' 页';
                         pdfDiv.innerHTML = '';
+                        var pageNav = document.getElementById('page-nav-wrap');
+                        var pageCurrent = document.getElementById('page-current');
+                        var pageTotal = document.getElementById('page-total');
+                        if (numPages > 1) {
+                            pageNav.style.display = 'flex';
+                            pageTotal.textContent = numPages;
+                        }
                         var baseScale = 1.5;
                         var renderNext = function (pageNum) {
                             if (pageNum > numPages) return Promise.resolve();
@@ -183,12 +218,26 @@
                                 canvas.width = vp.width;
                                 canvas.style.maxWidth = '100%';
                                 return page.render({ canvasContext: ctx, viewport: vp }).promise.then(function () {
-                                    pdfDiv.appendChild(canvas);
+                                    var wrapper = document.createElement('div');
+                                    wrapper.className = 'page-wrapper';
+                                    wrapper.setAttribute('data-page', pageNum);
+                                    wrapper.appendChild(canvas);
+                                    pdfDiv.appendChild(wrapper);
                                     return renderNext(pageNum + 1);
                                 });
                             });
                         };
-                        return renderNext(1);
+                        return renderNext(1).then(function () {
+                            setTimeout(function () {
+                                var wrappers = pdfDiv.querySelectorAll('.page-wrapper');
+                                pdfPageTops = [];
+                                wrappers.forEach(function (w) {
+                                    pdfPageTops.push(w.offsetTop);
+                                });
+                                var cont = document.getElementById('preview-container');
+                                cont.addEventListener('scroll', updateCurrentPageFromScroll);
+                            }, 100);
+                        });
                     }).catch(function (err) {
                         pdfDiv.innerHTML = '<p class="text-danger">预览失败，请<a href="/api/minsheng/progress/download/' + id + '">下载</a>后查看</p>';
                         pageInfo.textContent = 'PDF 文档（预览失败）';
@@ -210,18 +259,51 @@
                 }
             }
 
+            function updateCurrentPageFromScroll() {
+                if (pdfNumPages < 2) return;
+                var cont = document.getElementById('preview-container');
+                var scrollTop = cont.scrollTop;
+                var idx = 0;
+                for (var i = pdfPageTops.length - 1; i >= 0; i--) {
+                    if (scrollTop >= pdfPageTops[i] - 50) { idx = i; break; }
+                }
+                document.getElementById('page-current').textContent = idx + 1;
+            }
+
+            function scrollToPage(n) {
+                if (n < 1 || n > pdfNumPages) return;
+                document.getElementById('page-current').textContent = n;
+                var cont = document.getElementById('preview-container');
+                var top = pdfPageTops[n - 1] || 0;
+                cont.scrollTo({ top: top - 20, behavior: 'smooth' });
+            }
+
             document.getElementById('btn-download').addEventListener('click', function () {
                 window.location.href = '/api/minsheng/progress/download/' + id;
             });
 
+            document.getElementById('btn-print').addEventListener('click', function () {
+                window.print();
+            });
+
+            document.getElementById('page-prev').addEventListener('click', function () {
+                var cur = parseInt(document.getElementById('page-current').textContent, 10);
+                scrollToPage(cur - 1);
+            });
+
+            document.getElementById('page-next').addEventListener('click', function () {
+                var cur = parseInt(document.getElementById('page-current').textContent, 10);
+                scrollToPage(cur + 1);
+            });
+
             document.getElementById('zoom-in').addEventListener('click', function () {
-                zoom = Math.min(150, zoom + 10);
+                zoom = Math.min(200, zoom + 10);
                 document.getElementById('zoom-value').textContent = zoom + '%';
                 applyDocumentZoom();
             });
 
             document.getElementById('zoom-out').addEventListener('click', function () {
-                zoom = Math.max(50, zoom - 10);
+                zoom = Math.max(25, zoom - 10);
                 document.getElementById('zoom-value').textContent = zoom + '%';
                 applyDocumentZoom();
             });

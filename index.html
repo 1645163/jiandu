@@ -56,16 +56,29 @@
         .topic-files-area { display: none; padding: 12px 0; border-top: 1px solid #eee; margin-top: 8px; }
         .topic-files-upload-wrap { text-align: right; margin-top: 8px; }
         .topic-files-toggle-btn { transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.15s; }
-        .topic-files-toggle-btn.topic-files-has-files { background-color: #165DFF; color: #fff; border-color: #165DFF; }
-        .topic-files-toggle-btn.topic-files-has-files:hover { background-color: #0d3ba8; color: #fff; border-color: #0d3ba8; transform: scale(1.08); }
+        .topic-files-toggle-btn.topic-files-has-files { background-color: #165DFF; color: #fff; border-color: #165DFF; font-weight: 500; }
+        .topic-files-toggle-btn.topic-files-has-files:hover { background-color: #0d3ba8; color: #fff; border-color: #0d3ba8; transform: scale(1.03); }
+        .topic-files-toggle-btn.topic-files-has-files .topic-files-count { background: rgba(255,255,255,0.95); color: #165DFF; font-size: 11px; min-width: 18px; text-align: center; }
+        .topic-files-toggle-btn { white-space: nowrap; }
         .topic-files-toggle-btn.active { background-color: #165DFF; color: #fff; border-color: #165DFF; }
         .topic-files-area.show { display: block; }
         .progress-table { border: 1px solid #dee2e6; border-radius: 6px; }
         .progress-table thead th { background: #f8f9fa; font-weight: 600; color: #6c757d; }
-        .progress-table .progress-date-col { min-width: 100px; }
-        .progress-table .progress-name-col { min-width: 180px; }
+        .progress-table thead th.progress-date-col,
+        .progress-table thead th.progress-name-col { color: #6c757d; }
+        .progress-table .progress-date-col { min-width: 140px; width: 140px; padding-right: 24px; white-space: nowrap; color: #6c757d; }
+        .progress-table .progress-name-col { min-width: 200px; padding-left: 24px; padding-right: 24px; text-align: left; }
         .progress-table .progress-op-col { white-space: nowrap; text-align: right; }
         .btn-group-inline { display: inline-flex; align-items: flex-start; gap: 5px; flex-wrap: wrap; }
+        /* 议题表单：监督形式/部门 可选择+可输入（同民生实事） */
+        .topic-form-autocomplete { position: relative; }
+        .topic-form-autocomplete .autocomplete-dropdown { position: absolute; top: 100%; left: 0; right: 0; margin-top: 2px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 6px 18px rgba(15,23,42,0.12); max-height: 220px; overflow-y: auto; z-index: 1060; font-size: 13px; }
+        .topic-form-autocomplete .autocomplete-item { padding: 6px 10px; cursor: pointer; }
+        .topic-form-autocomplete .autocomplete-item:hover { background: #f1f5f9; }
+        .jiandu-file-preview-link { color: #165DFF; cursor: pointer; }
+        .jiandu-file-preview-link:hover { color: #0d3ba8; text-decoration: underline !important; }
+        .btn-file-action { font-size: 12px; padding: 0.15rem 0.4rem; min-height: 28px; }
+        .btn-file-action i { font-size: 11px; }
     </style>
 </head>
 <body>
@@ -83,7 +96,7 @@
                     <li class="nav-item"><a class="nav-link nav-module-link" href="meiyue.html">每月工作</a></li>
                     <li class="nav-item"><a class="nav-link nav-module-link" href="meizhou.html">每周工作</a></li>
                     <li class="nav-item"><a class="nav-link nav-module-link" href="falv.html">法律法规</a></li>
-                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">工作计划</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">计划月历</a></li>
                 </ul>
                 <div class="navbar-nav ms-auto">
                     <span class="nav-link text-white" id="user-role">当前身份：<b>游客（未登录）</b></span>
@@ -164,6 +177,27 @@
         </div>
     </div>
 
+    <!-- 监督议题文件预览弹窗 -->
+    <div class="modal fade" id="jiandu-file-preview-modal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-fullscreen-lg-down" style="max-width: 95%; height: 90vh;">
+            <div class="modal-content h-100">
+                <div class="modal-header py-2 d-flex align-items-center">
+                    <h6 class="modal-title text-truncate flex-grow-1 pe-2" id="jiandu-file-preview-title">文件预览</h6>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary me-2" style="font-size: 13px; padding: 5px 12px;"><i class="fa fa-hand-o-up me-1"></i>点击空白处关闭</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0" style="height: calc(100% - 50px);">
+                    <iframe id="jiandu-file-preview-iframe" style="width:100%;height:100%;border:none;" title="文件预览"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('jiandu-file-preview-modal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('jiandu-file-preview-iframe').src = 'about:blank';
+        });
+    </script>
+
     <!-- 新增/编辑议题模态框 -->
     <div class="modal fade" id="topic-modal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -186,18 +220,17 @@
                             </div>
                             <div class="col-12 col-md-4">
                                 <label class="form-label">监督形式</label>
-                                <select class="form-select" name="form" required>
-                                    <option value="">请选择</option>
-                                    <option value="听取审议报告">听取审议报告</option>
-                                    <option value="财经工作监督">财经工作监督</option>
-                                    <option value="执法检查">执法检查</option>
-                                    <option value="专题询问">专题询问</option>
-                                    <option value="视察">视察</option>
-                                </select>
+                                <div class="topic-form-autocomplete">
+                                    <input type="text" class="form-control" name="form" id="topic-form-form" placeholder="选择或输入监督形式" required autocomplete="off">
+                                    <div id="topic-form-form-dropdown" class="autocomplete-dropdown d-none"></div>
+                                </div>
                             </div>
                             <div class="col-12 col-md-4">
                                 <label class="form-label">部门/处室</label>
-                                <input type="text" class="form-control" name="department" placeholder="部门/处室" required>
+                                <div class="topic-form-autocomplete">
+                                    <input type="text" class="form-control" name="department" id="topic-form-department" placeholder="选择或输入部门/处室" required autocomplete="off">
+                                    <div id="topic-form-department-dropdown" class="autocomplete-dropdown d-none"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -360,7 +393,8 @@
             var formSortOrder = ['听取审议报告', '财经工作监督', '执法检查', '专题询问', '视察'];
             var isAdmin = false;
             var sortConfig = { field: 'year', type: 'desc' };
-            var overviewFilter = { form: null, department: null, month: null };
+            var overviewFilter = { form: null, department: null, month: null, caiJingGongzuo: false };
+            var expandedTopicIds = {};
             var chartDeptInstance = null;
             var chartMonthInstance = null;
 
@@ -414,8 +448,9 @@
                 formSortOrder.forEach(function (f) { stats[f] = list.filter(function (t) { return t.form === f; }).length; });
 
                 var deptOrdered = (departmentsData || []).slice().sort(function (a, b) { return (a.id || 0) - (b.id || 0); });
+                var listDept = overviewFilter.caiJingGongzuo ? list : list.filter(function (t) { return t.form !== '财经工作监督'; });
                 var deptCounts = {};
-                list.forEach(function (t) { var d = (t.department || '').trim(); if (d) deptCounts[d] = (deptCounts[d] || 0) + 1; });
+                listDept.forEach(function (t) { var d = (t.department || '').trim(); if (d) deptCounts[d] = (deptCounts[d] || 0) + 1; });
                 var deptLabels = [];
                 var deptValues = [];
                 var addedDepts = {};
@@ -450,7 +485,7 @@
                 });
                 html += '</div></div>';
                 html += '<div class="jiandu-overview-charts">';
-                html += '<div class="jiandu-chart-wrap" id="chart-dept-wrap"><div class="chart-title"><i class="fa fa-building me-1"></i>按监督部门分布</div><div class="chart-canvas-wrap"><canvas id="chart-dept"></canvas></div></div>';
+                html += '<div class="jiandu-chart-wrap" id="chart-dept-wrap"><div class="chart-title d-flex justify-content-between align-items-center"><span><i class="fa fa-building me-1"></i>按监督部门分布</span><label class="mb-0 ms-2 small fw-normal"><input type="checkbox" class="form-check-input me-1" id="overview-caijing-check">财经工作监督</label></div><div class="chart-canvas-wrap"><canvas id="chart-dept"></canvas></div></div>';
                 html += '<div class="jiandu-chart-wrap" id="chart-month-wrap"><div class="chart-title"><i class="fa fa-bar-chart me-1"></i>按工作时间分布</div><div class="chart-canvas-wrap"><canvas id="chart-month"></canvas></div></div>';
                 html += '</div></div>';
 
@@ -460,6 +495,8 @@
                     overviewFilter.form = null;
                     overviewFilter.department = null;
                     overviewFilter.month = null;
+                    overviewFilter.caiJingGongzuo = false;
+                    var cb = document.getElementById('overview-caijing-check'); if (cb) cb.checked = false;
                     renderOverview();
                     renderTable();
                 });
@@ -473,6 +510,14 @@
                         renderTable();
                     });
                 });
+                var caijingCheck = document.getElementById('overview-caijing-check');
+                if (caijingCheck) {
+                    caijingCheck.checked = !!overviewFilter.caiJingGongzuo;
+                    caijingCheck.addEventListener('change', function () {
+                        overviewFilter.caiJingGongzuo = this.checked;
+                        renderOverview();
+                    });
+                }
 
                 if (typeof Chart !== 'undefined') {
                     if (chartDeptInstance) { chartDeptInstance.destroy(); chartDeptInstance = null; }
@@ -645,27 +690,34 @@
                         var ext = (f.fileType || 'pdf').toUpperCase();
                         var dateStr = formatDateCh(f.uploadDate || (f.createdAt ? f.createdAt.slice(0, 10) : ''));
                         var fname = f.title || f.originalName || '未命名';
-                        filesHtml += '<tr><td class="progress-date-col">' + dateStr + '</td><td class="progress-name-col"><i class="fa fa-file-' + (f.fileType === 'pdf' ? 'pdf' : 'word') + '-o text-danger me-1"></i>' + fname + ' <span class="badge bg-secondary">' + ext + '</span></td><td class="progress-op-col">';
-                        filesHtml += '<a href="jiandu-file-detail.html?id=' + f.id + '" target="_blank" class="btn btn-outline-primary btn-sm me-1"><i class="fa fa-eye"></i> 预览</a>';
-                        filesHtml += '<a href="/api/jiandu/topics/files/' + f.id + '/download" class="btn btn-outline-info btn-sm" target="_blank"><i class="fa fa-download"></i> 下载</a>';
-                        if (isAdmin) filesHtml += ' <button class="btn btn-outline-danger btn-sm ms-1 jiandu-file-del-btn" data-id="' + f.id + '"><i class="fa fa-trash"></i> 删除</button>';
-                        filesHtml += '</td></tr>';
+                        var badgeCls = (ext === 'PDF') ? 'badge-file-pdf' : 'badge-file-docx';
+                        var opCells = '';
+                        if (isAdmin) {
+                            opCells = '<td class="progress-op-col"><span class="d-inline-flex gap-1 flex-nowrap align-items-center">' +
+                                '<button class="btn btn-outline-secondary btn-sm btn-file-action jiandu-file-edit-btn" data-id="' + f.id + '" title="编辑"><i class="fa fa-edit"></i> 编辑</button>' +
+                                '<button class="btn btn-outline-danger btn-sm btn-file-action jiandu-file-del-btn" data-id="' + f.id + '"><i class="fa fa-trash"></i> 删除</button>' +
+                                '<a href="/api/jiandu/topics/files/' + f.id + '/download" class="btn btn-outline-info btn-sm btn-file-action" target="_blank"><i class="fa fa-download"></i> 下载</a>' +
+                                '<button class="btn btn-primary btn-sm btn-file-action jiandu-file-upload-btn" data-topic-id="' + t.id + '" title="上传"><i class="fa fa-upload"></i> 上传</button></span></td>';
+                        } else {
+                            opCells = '<td class="progress-op-col"><a href="/api/jiandu/topics/files/' + f.id + '/download" class="btn btn-outline-info btn-sm btn-file-action" target="_blank"><i class="fa fa-download"></i> 下载</a></td>';
+                        }
+                        filesHtml += '<tr><td class="progress-date-col">' + dateStr + '</td><td class="progress-name-col"><i class="fa fa-file-' + (f.fileType === 'pdf' ? 'pdf' : 'word') + '-o text-danger me-1"></i><a href="javascript:void(0)" class="jiandu-file-preview-link text-decoration-none" data-id="' + f.id + '" data-title="' + (fname + '').replace(/"/g, '&quot;') + '">' + fname + '</a> <span class="badge ' + badgeCls + '">' + ext + '</span></td>' + opCells + '</tr>';
                     });
                 }
-                var uploadBtn = isAdmin ? '<div class="topic-files-upload-wrap"><button class="btn btn-sm btn-primary jiandu-file-upload-btn" data-topic-id="' + t.id + '"><i class="fa fa-upload"></i> 上传资料</button></div>' : '';
-                var filesArea = '<div class="topic-files-area" id="files-area-' + t.id + '"><table class="table table-sm progress-table mb-2"><thead><tr><th class="progress-date-col">日期</th><th class="progress-name-col">文件名</th><th class="progress-op-col">操作</th></tr></thead><tbody>' + filesHtml + '</tbody></table>' + uploadBtn + '</div>';
+                var filesArea = '<div class="topic-files-area" id="files-area-' + t.id + '"><table class="table table-sm progress-table mb-2"><thead><tr><th class="progress-date-col">日期</th><th class="progress-name-col">文件名</th><th class="progress-op-col">操作</th></tr></thead><tbody>' + filesHtml + '</tbody></table></div>';
 
                 var cb = isAdmin ? '<input type="checkbox" class="row-checkbox" data-id="' + t.id + '">' : '';
-                var filesIconTitle = files.length > 0 ? '文件资料（' + files.length + '）' : '文件资料';
                 var hasFilesCls = files.length > 0 ? ' topic-files-has-files' : '';
-                var opFilesBtn = '<button class="btn btn-sm btn-outline-secondary topic-files-toggle-btn' + hasFilesCls + '" data-topic-id="' + t.id + '" title="' + filesIconTitle + '"><i class="fa fa-paperclip"></i></button>';
+                var countBadge = files.length > 0 ? ' <span class="badge topic-files-count rounded-pill ms-1">' + files.length + '</span>' : '';
+                var filesIconTitle = files.length > 0 ? '点击展开，' + files.length + ' 个文件可预览/下载' : '点击上传或查看资料';
+                var opFilesBtn = '<button class="btn btn-sm btn-outline-secondary topic-files-toggle-btn' + hasFilesCls + '" data-topic-id="' + t.id + '" title="' + filesIconTitle + '"><i class="fa fa-paperclip me-1"></i>资料' + countBadge + '</button>';
                 var op = isAdmin ? '<span class="d-inline-flex gap-1 flex-nowrap align-items-center">' +
                     '<button class="btn btn-sm btn-outline-primary edit-topic-btn" data-id="' + t.id + '" title="编辑"><i class="fa fa-edit"></i></button>' +
                     '<button class="btn btn-sm btn-outline-danger del-topic-btn" data-id="' + t.id + '" title="删除"><i class="fa fa-trash"></i></button>' +
                     opFilesBtn + '</span>' : '<span class="d-inline-flex gap-1 flex-nowrap align-items-center">' + opFilesBtn + '</span>';
                 var monthStr = (t.month && t.month >= 1 && t.month <= 12) ? t.month + '月' : '-';
                 return '<tr class="topic-row" data-id="' + t.id + '"><td>' + cb + '</td><td>' + index + '</td><td>' + t.year + '年</td><td>' + monthStr + '</td><td>' + (t.content || '') + '</td><td>' + (t.form || '') + '</td><td>' + (t.department || '') + '</td><td>' + op + '</td></tr>' +
-                    '<tr class="topic-files-row" data-topic-id="' + t.id + '"><td colspan="8" class="p-2 bg-light">' + filesArea + '</td></tr>';
+                    '<tr class="topic-files-row" data-topic-id="' + t.id + '"><td colspan="8" class="py-2 pe-2 bg-light" style="padding-left: 0;">' + filesArea + '</td></tr>';
             }
 
             function renderTable() {
@@ -681,6 +733,22 @@
                     html += renderTopicRow(t, i + 1, files);
                 });
                 tbody.innerHTML = html;
+                restoreExpandedFiles();
+            }
+
+            function restoreExpandedFiles() {
+                for (var tid in expandedTopicIds) {
+                    if (!expandedTopicIds[tid]) continue;
+                    var area = document.getElementById('files-area-' + tid);
+                    if (area) {
+                        area.classList.add('show');
+                        var row = document.querySelector('.topic-row[data-id="' + tid + '"]');
+                        if (row) {
+                            var btn = row.querySelector('.topic-files-toggle-btn[data-topic-id="' + tid + '"]');
+                            if (btn) btn.classList.add('active');
+                        }
+                    }
+                }
             }
 
             function refresh() {
@@ -727,6 +795,7 @@
             }
 
             function bindEvents() {
+                setupTopicFormAutocomplete();
                 document.getElementById('login-btn').addEventListener('click', function () { new bootstrap.Modal(document.getElementById('login-modal')).show(); });
                 document.getElementById('logout-btn').addEventListener('click', function () {
                     var t = getToken();
@@ -799,19 +868,44 @@
                     renderTable();
                 });
 
-                function syncFormSelectOptions() {
-                    var sel = document.querySelector('#topic-form [name="form"]');
-                    if (!sel) return;
-                    var cur = sel.value;
-                    sel.innerHTML = '<option value="">请选择</option>';
-                    formSortOrder.forEach(function (f) { sel.innerHTML += '<option value="' + f + '">' + f + '</option>'; });
-                    if (cur) sel.value = cur;
+                function renderTopicAutocomplete(inputEl, dropdownEl, options, keyword) {
+                    if (!inputEl || !dropdownEl || !options) return;
+                    var kw = (keyword || '').trim().toLowerCase();
+                    var items = options.filter(function (name) { var lower = (name || '').toLowerCase(); return !kw || lower.indexOf(kw) !== -1; });
+                    if (!items.length) { dropdownEl.classList.add('d-none'); dropdownEl.innerHTML = ''; return; }
+                    dropdownEl.innerHTML = items.map(function (name) { return '<div class="autocomplete-item" data-value="' + (name + '').replace(/"/g, '&quot;') + '">' + name + '</div>'; }).join('');
+                    dropdownEl.classList.remove('d-none');
+                }
+                function setupTopicAutocompleteFor(inputEl, dropdownEl, getOptions) {
+                    if (!inputEl || !dropdownEl || !getOptions) return;
+                    inputEl.addEventListener('input', function () { renderTopicAutocomplete(inputEl, dropdownEl, getOptions(), inputEl.value); });
+                    inputEl.addEventListener('focus', function () { renderTopicAutocomplete(inputEl, dropdownEl, getOptions(), inputEl.value); });
+                    dropdownEl.addEventListener('mousedown', function (e) {
+                        var item = e.target.closest('.autocomplete-item');
+                        if (!item) return;
+                        inputEl.value = item.getAttribute('data-value') || '';
+                        dropdownEl.classList.add('d-none');
+                        e.preventDefault();
+                    });
+                    document.addEventListener('click', function (e) {
+                        if (e.target === inputEl || dropdownEl.contains(e.target)) return;
+                        dropdownEl.classList.add('d-none');
+                    });
+                }
+                function setupTopicFormAutocomplete() {
+                    setupTopicAutocompleteFor(document.getElementById('topic-form-form'), document.getElementById('topic-form-form-dropdown'), function () { return formSortOrder || []; });
+                    setupTopicAutocompleteFor(document.getElementById('topic-form-department'), document.getElementById('topic-form-department-dropdown'), function () {
+                        var seen = {}, list = [];
+                        (departmentsData || []).forEach(function (d) { var n = (d.name || '').trim(); if (n && !seen[n]) { seen[n] = 1; list.push(n); } });
+                        return list;
+                    });
                 }
                 document.getElementById('btn-add').addEventListener('click', function () {
                     document.getElementById('topic-modal-title').textContent = '新增议题';
                     document.getElementById('topic-form').reset();
                     document.querySelector('#topic-form [name="id"]').value = '';
-                    syncFormSelectOptions();
+                    document.getElementById('topic-form-form-dropdown').classList.add('d-none');
+                    document.getElementById('topic-form-department-dropdown').classList.add('d-none');
                     new bootstrap.Modal(document.getElementById('topic-modal')).show();
                 });
 
@@ -1054,24 +1148,38 @@
                 }
 
                 document.getElementById('topic-list').addEventListener('click', function (e) {
+                    var previewLink = e.target.closest('.jiandu-file-preview-link');
+                    if (previewLink) {
+                        var fid = previewLink.dataset.id;
+                        var title = previewLink.dataset.title || '文件预览';
+                        if (fid) {
+                            document.getElementById('jiandu-file-preview-title').textContent = title;
+                            document.getElementById('jiandu-file-preview-iframe').src = 'jiandu-file-detail.html?id=' + fid + '&embed=1';
+                            new bootstrap.Modal(document.getElementById('jiandu-file-preview-modal')).show();
+                        }
+                        return;
+                    }
                     var editBtn = e.target.closest('.edit-topic-btn');
                     var delBtn = e.target.closest('.del-topic-btn');
                     var toggleBtn = e.target.closest('.topic-files-toggle-btn') || e.target.closest('.topic-files-toggle');
                     var uploadBtn = e.target.closest('.jiandu-file-upload-btn');
                     var fileDelBtn = e.target.closest('.jiandu-file-del-btn');
+                    var fileEditBtn = e.target.closest('.jiandu-file-edit-btn');
 
                     if (editBtn && isAdmin) {
                         var id = editBtn.dataset.id;
                         var t = topicsData.find(function (x) { return String(x.id) === id; });
                         if (t) {
-                            syncFormSelectOptions();
                             document.getElementById('topic-modal-title').textContent = '编辑议题';
+                            document.getElementById('topic-form').reset();
                             document.querySelector('#topic-form [name="id"]').value = t.id;
                             document.querySelector('#topic-form [name="year"]').value = t.year;
                             document.querySelector('#topic-form [name="month"]').value = (t.month >= 1 && t.month <= 12) ? t.month : '';
                             document.querySelector('#topic-form [name="content"]').value = t.content || '';
-                            document.querySelector('#topic-form [name="form"]').value = t.form || '';
-                            document.querySelector('#topic-form [name="department"]').value = t.department || '';
+                            document.getElementById('topic-form-form').value = t.form || '';
+                            document.getElementById('topic-form-department').value = t.department || '';
+                            document.getElementById('topic-form-form-dropdown').classList.add('d-none');
+                            document.getElementById('topic-form-department-dropdown').classList.add('d-none');
                             new bootstrap.Modal(document.getElementById('topic-modal')).show();
                         }
                     }
@@ -1086,6 +1194,7 @@
                         var chevron = toggleBtn.querySelector && toggleBtn.querySelector('.topic-chevron');
                         if (area) {
                             var show = !area.classList.contains('show');
+                            expandedTopicIds[tid] = show;
                             area.classList.toggle('show', show);
                             if (btnEl) btnEl.classList.toggle('active', show);
                             else if (chevron) chevron.className = show ? 'fa fa-chevron-down topic-chevron me-1' : 'fa fa-chevron-right topic-chevron me-1';
@@ -1097,6 +1206,9 @@
                         document.getElementById('file-upload-title').value = '';
                         document.getElementById('file-upload-input').value = '';
                         new bootstrap.Modal(document.getElementById('file-upload-modal')).show();
+                    }
+                    if (fileEditBtn && isAdmin) {
+                        showToast('文件修改功能开发中');
                     }
                     if (fileDelBtn && isAdmin) {
                         if (!confirm('确定删除该文件吗？')) return;

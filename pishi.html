@@ -41,7 +41,8 @@
         .table th { white-space: nowrap; }
         .table td { white-space: normal; word-break: break-all; overflow-wrap: break-word; }
         .btn { min-height: 44px; min-width: 44px; padding: 0.5rem 1rem; font-size: 14px; }
-        .btn-sm { min-height: 36px; min-width: 36px; padding: 0.25rem 0.5rem; }
+        .btn-sm { min-height: 32px; min-width: 32px; padding: 0.2rem 0.4rem; font-size: 12px; }
+        .btn-sm i { font-size: 11px; }
         .form-control, .form-select { min-height: 44px; font-size: 14px; width: 100%; }
         .navbar-brand { font-size: 16px; }
         .nav-link { padding: 0.5rem 0.75rem; }
@@ -83,6 +84,8 @@
         .progress-table .progress-name-col { min-width: 200px; padding-left: 24px; padding-right: 24px; }
         .progress-table .progress-op-col { white-space: nowrap; text-align: right; }
         .progress-table .progress-op-col .btn-group { flex-wrap: nowrap; display: inline-flex; }
+        .pishi-report-preview-link { color: #165DFF; cursor: pointer; }
+        .pishi-report-preview-link:hover { color: #0d3ba8; text-decoration: underline !important; }
         .form-control-date { min-height: 48px; padding: 12px 16px; font-size: 16px; cursor: pointer; }
     </style>
 </head>
@@ -101,7 +104,7 @@
                     <li class="nav-item"><a class="nav-link nav-module-link" href="meiyue.html">每月工作</a></li>
                     <li class="nav-item"><a class="nav-link nav-module-link" href="meizhou.html">每周工作</a></li>
                     <li class="nav-item"><a class="nav-link nav-module-link" href="falv.html">法律法规</a></li>
-                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">工作计划</a></li>
+                    <li class="nav-item"><a class="nav-link nav-module-link" href="jihua.html">计划月历</a></li>
                 </ul>
                 <div class="navbar-nav ms-auto">
                     <span class="nav-link text-white" id="user-role">当前身份：<b>游客（未登录）</b></span>
@@ -325,6 +328,27 @@
             </div>
         </div>
     </div>
+
+    <!-- 批示办理情况报告预览弹窗 -->
+    <div class="modal fade" id="pishi-report-preview-modal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-fullscreen-lg-down" style="max-width: 95%; height: 90vh;">
+            <div class="modal-content h-100">
+                <div class="modal-header py-2 d-flex align-items-center">
+                    <h6 class="modal-title text-truncate flex-grow-1 pe-2" id="pishi-report-preview-title">报告预览</h6>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary me-2" style="font-size: 13px; padding: 5px 12px;"><i class="fa fa-hand-o-up me-1"></i>点击空白处关闭</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0" style="height: calc(100% - 50px);">
+                    <iframe id="pishi-report-preview-iframe" style="width:100%;height:100%;border:none;" title="报告预览"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('pishi-report-preview-modal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('pishi-report-preview-iframe').src = 'about:blank';
+        });
+    </script>
 
     <!-- 批示办理情况报告上传模态框 -->
     <div class="modal fade" id="pishi-report-upload-modal" tabindex="-1">
@@ -628,11 +652,10 @@
                     var dateStr = formatDateChinese(rawDate || '');
                     var fileName = (p.title || p.originalName || '未命名');
                     html += '<tr><td class="progress-date-col">' + dateStr + '</td>';
-                    html += '<td class="progress-name-col"><i class="fa fa-file-' + (p.fileType === 'pdf' ? 'pdf' : 'word') + '-o text-danger me-1"></i>' + fileName + ' <span class="badge bg-secondary">' + ext + '</span></td>';
+                    html += '<td class="progress-name-col"><i class="fa fa-file-' + (p.fileType === 'pdf' ? 'pdf' : 'word') + '-o text-danger me-1"></i><a href="javascript:void(0)" class="pishi-report-preview-link text-decoration-none" data-id="' + p.id + '" data-title="' + (fileName + '').replace(/"/g, '&quot;') + '">' + fileName + '</a> <span class="badge ' + (ext === 'PDF' ? 'badge-file-pdf' : 'badge-file-docx') + '">' + ext + '</span></td>';
                     html += '<td class="progress-op-col"><div class="btn-group btn-group-sm">';
-                    html += '<a href="pishi-report-detail.html?id=' + p.id + '" target="_blank" class="btn btn-outline-primary btn-sm"><i class="fa fa-eye"></i> 预览</a>';
                     if (isAdmin) {
-                        html += '<button class="btn btn-outline-secondary btn-sm pishi-report-edit-btn" data-id="' + p.id + '"><i class="fa fa-edit"></i> 修改</button>';
+                        html += '<button class="btn btn-outline-secondary btn-sm pishi-report-edit-btn" data-id="' + p.id + '"><i class="fa fa-edit"></i> 编辑</button>';
                         html += '<button class="btn btn-outline-danger btn-sm pishi-report-del-btn" data-id="' + p.id + '"><i class="fa fa-trash"></i> 删除</button>';
                     }
                     html += '<a href="/api/pishi/report/download/' + p.id + '" class="btn btn-outline-info btn-sm" target="_blank"><i class="fa fa-download"></i> 下载</a>';
@@ -802,6 +825,30 @@
                     return;
                 }
                 if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
+                var barShadowPlugin = {
+                    id: 'barShadow',
+                    beforeDatasetsDraw: function (chart) {
+                        if (chart.config.type !== 'bar') return;
+                        var ctx = chart.ctx;
+                        chart.data.datasets.forEach(function (dataset, i) {
+                            var meta = chart.getDatasetMeta(i);
+                            if (!meta.data || meta.hidden) return;
+                            meta.data.forEach(function (bar) {
+                                var x = bar.x, base = bar.base, w = bar.width;
+                                var left = x - w / 2, top = bar.y, h = base - top;
+                                ctx.save();
+                                ctx.shadowColor = 'rgba(0,0,0,0.22)';
+                                ctx.shadowBlur = 12;
+                                ctx.shadowOffsetX = 4;
+                                ctx.shadowOffsetY = 5;
+                                ctx.fillStyle = 'rgba(0,0,0,0.03)';
+                                ctx.fillRect(left, top, w, h);
+                                ctx.restore();
+                            });
+                        });
+                    }
+                };
+                Chart.register(barShadowPlugin);
                 var labelCount = labels.length;
                 var needRotate = labelCount > 8;
                 var xTicksConfig = {
@@ -828,8 +875,7 @@
                         g.addColorStop(1, c.border);
                         return g;
                     }),
-                    borderColor: labels.map(function (_, i) { return getMorandiColor(i).border; }),
-                    borderWidth: 2,
+                    borderWidth: 0,
                     borderRadius: 8,
                     borderSkipped: false,
                     hoverOffset: 10,
@@ -1232,10 +1278,21 @@
                         }).catch(function () { showToast('上传失败'); });
                     });
                 }
-                // 批示办理情况报告：编辑、删除（事件委托）
+                // 批示办理情况报告：点击文件名预览、编辑、删除（事件委托）
                 var reportArea = document.getElementById('pishi-report-area');
                 if (reportArea) {
                     reportArea.addEventListener('click', function (e) {
+                        var previewLink = e.target.closest('.pishi-report-preview-link');
+                        if (previewLink) {
+                            var id = previewLink.dataset.id;
+                            var title = previewLink.dataset.title || '报告预览';
+                            if (id) {
+                                document.getElementById('pishi-report-preview-title').textContent = title;
+                                document.getElementById('pishi-report-preview-iframe').src = 'pishi-report-detail.html?id=' + id + '&embed=1';
+                                new bootstrap.Modal(document.getElementById('pishi-report-preview-modal')).show();
+                            }
+                            return;
+                        }
                         var editBtn = e.target.closest('.pishi-report-edit-btn');
                         var delBtn = e.target.closest('.pishi-report-del-btn');
                         if (editBtn) {

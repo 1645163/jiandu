@@ -26,6 +26,8 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+        /* 部门卡片间距，便于区分 */
+        .dept-card.card.mb-4 { margin-bottom: 1.75rem !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
         /* 图表容器 - 铺满页面宽度 */
         .chart-container {
             height: 220px;
@@ -52,16 +54,41 @@
             background-color: #165DFF !important;
             color: white !important;
             border-color: #1452e0 !important;
+            font-size: 15px;
         }
         .table-header-blue th { border-color: #1452e0 !important; }
-        /* 民生实事部门标题：醒目背景+蓝色左侧色条 */
+        /* 民生实事部门卡片：清新简洁，易于区分 */
+        .dept-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
         .dept-card .dept-card-header {
-            background: linear-gradient(90deg, #e8f0fe 0%, #d2e3fc 100%);
-            color: #1e3a5f;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef4fb 100%);
+            color: #1e3a8a;
             font-weight: 600;
+            font-size: 1.1rem;
             border: none;
-            border-left: 4px solid #165DFF;
-            border-radius: 8px 8px 0 0;
+            border-left: 5px solid #165DFF;
+            border-radius: 12px 12px 0 0;
+            padding: 1rem 1.35rem;
+        }
+        .dept-card-header .dept-seq {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            padding: 0 8px;
+            margin-right: 12px;
+            background: #165DFF;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 6px;
+        }
+        .dept-card-header .dept-name {
+            letter-spacing: 0.02em;
         }
         /* 排序按钮样式 */
         .sort-btn {
@@ -132,8 +159,8 @@
             margin: 0 -15px;
             padding: 0 15px;
         }
-        /* 表格单元格适配 - 内容自动换行 */
-        .table th, .table td { padding: 0.75rem 0.5rem; font-size: 13px; }
+        /* 表格单元格适配 - 内容自动换行，字号略大 */
+        .table th, .table td { padding: 0.85rem 0.65rem; font-size: 15px; }
         .table th { white-space: nowrap; } /* 表头与排序按钮同一行 */
         .table td { white-space: normal; word-break: break-all; overflow-wrap: break-word; }
         /* 移动端按钮优化 - 增大触控区域 */
@@ -144,10 +171,12 @@
             font-size: 14px;
         }
         .btn-sm {
-            min-height: 36px;
-            min-width: 36px;
-            padding: 0.25rem 0.5rem;
+            min-height: 32px;
+            min-width: 32px;
+            padding: 0.2rem 0.4rem;
+            font-size: 12px;
         }
+        .btn-sm i { font-size: 11px; }
         .move-btn {
             min-height: 30px;
             min-width: 30px;
@@ -255,16 +284,45 @@
                 width: 100%;
             }
         }
-        /* 工作进展资料两列表格 - 日期与文件名分列 */
-        .progress-table { border: 1px solid #dee2e6; border-radius: 6px; }
-        .progress-table thead th { background: #f8f9fa; font-weight: 600; }
+        /* 工作进展资料两列表格 - 日期与文件名分列（用于弹窗等） */
+        .progress-table { border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
+        .progress-table thead th { background: #f8fafc; font-weight: 600; color: #334155; padding: 0.6rem 0.8rem; }
         .progress-table thead th.progress-date-col,
-        .progress-table thead th.progress-name-col { color: #6c757d; }
-        .progress-table .progress-date-col { min-width: 140px; width: 140px; padding-right: 24px; white-space: nowrap; color: #6c757d; }
-        .progress-table .progress-name-col { min-width: 200px; padding-left: 24px; padding-right: 24px; }
-        .progress-table .progress-op-col { white-space: nowrap; text-align: right; }
+        .progress-table thead th.progress-name-col { color: #64748b; }
+        .progress-table .progress-date-col { min-width: 140px; width: 140px; padding: 0.6rem 0.8rem; white-space: nowrap; color: #64748b; }
+        .progress-table .progress-name-col { min-width: 200px; padding: 0.6rem 0.8rem; }
+        .progress-table .progress-dept-col { min-width: 100px; color: #64748b; padding: 0.6rem 0.8rem; }
+        .progress-table .progress-op-col { white-space: nowrap; text-align: right; padding: 0.6rem 0.8rem; }
         .progress-table .progress-op-col .btn-group { flex-wrap: nowrap; display: inline-flex; }
+        .minsheng-file-preview-link { color: #165DFF; cursor: pointer; }
+        .minsheng-file-preview-link:hover { color: #0d3ba8; text-decoration: underline !important; }
         .form-control-date { min-height: 48px; padding: 12px 16px; font-size: 16px; cursor: pointer; }
+        /* 自定义部门下拉选择（代替 datalist，可控字号） */
+        .dept-autocomplete-wrapper {
+            position: relative;
+        }
+        .dept-autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 2px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+            max-height: 260px;
+            overflow-y: auto;
+            z-index: 1060;
+            font-size: 12px;
+        }
+        .dept-autocomplete-item {
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+        .dept-autocomplete-item:hover {
+            background: #f1f5f9;
+        }
     </style>
 </head>
 <body>
@@ -283,7 +341,7 @@
                     <li class="nav-item"><a class="nav-link text-white" href="meiyue.html">每月工作</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="meizhou.html">每周工作</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="falv.html">法律法规</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="jihua.html">工作计划</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="jihua.html">计划月历</a></li>
                 </ul>
                 <div class="navbar-nav ms-auto">
                     <span class="nav-link text-white" id="user-role">当前身份：<b>游客（未登录）</b></span>
@@ -311,6 +369,21 @@
                 <div class="chart-container">
                     <canvas id="stats-chart"></canvas>
                 </div>
+            </div>
+        </div>
+
+        <!-- 民生实事文件资料（参照批示督办） -->
+        <div class="card" id="minsheng-file-area">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 minsheng-file-title-toggle" style="cursor: pointer; user-select: none;"><i class="fa fa-chevron-down minsheng-file-chevron me-1"></i>民生实事文件资料</h5>
+                <button class="btn btn-sm btn-primary" id="minsheng-file-upload-btn" style="display: none;"><i class="fa fa-upload"></i> 上传资料</button>
+            </div>
+            <div class="card-body" id="minsheng-file-card-body">
+                <table class="table table-sm progress-table mb-0">
+                    <thead><tr><th class="progress-date-col">日期</th><th class="progress-name-col">文件名</th><th class="progress-dept-col">部门</th><th class="progress-op-col">操作</th></tr></thead>
+                    <tbody id="minsheng-file-list"></tbody>
+                </table>
+                <div id="minsheng-file-empty" class="text-muted text-center py-3">暂无资料</div>
             </div>
         </div>
 
@@ -465,6 +538,66 @@
         </div>
     </div>
 
+    <!-- 民生实事文件资料预览弹窗 -->
+    <div class="modal fade" id="minsheng-file-preview-modal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-fullscreen-lg-down" style="max-width: 95%; height: 90vh;">
+            <div class="modal-content h-100">
+                <div class="modal-header py-2 d-flex align-items-center">
+                    <h6 class="modal-title text-truncate flex-grow-1 pe-2" id="minsheng-file-preview-title">文件预览</h6>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary me-2" style="font-size: 13px; padding: 5px 12px;"><i class="fa fa-hand-o-up me-1"></i>点击空白处关闭</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0" style="height: calc(100% - 50px);">
+                    <iframe id="minsheng-file-preview-iframe" style="width:100%;height:100%;border:none;" title="文件预览"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('minsheng-file-preview-modal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('minsheng-file-preview-iframe').src = 'about:blank';
+        });
+    </script>
+
+    <!-- 民生实事文件资料上传模态框（独立上传，需选部门） -->
+    <div class="modal fade" id="minsheng-file-upload-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">上传民生实事文件资料</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="minsheng-file-upload-form">
+                        <div class="mb-3">
+                            <label class="form-label">监督部门 <span class="text-danger">*</span></label>
+                            <div class="dept-autocomplete-wrapper">
+                                <input type="text" class="form-control" name="department" id="minsheng-file-upload-dept" placeholder="选择或输入监督部门" required autocomplete="off">
+                                <div id="minsheng-dept-dropdown" class="dept-autocomplete-dropdown d-none"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">上传日期（可选，点击选择）</label>
+                            <input type="date" class="form-control form-control-date" name="uploadDate" id="minsheng-file-upload-date">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">资料标题</label>
+                            <input type="text" class="form-control" name="title" placeholder="请输入资料标题（可选，默认使用文件名）">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">选择文件（PDF、Word）</label>
+                            <input type="file" class="form-control" id="minsheng-file-upload-file" accept=".pdf,.doc,.docx" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="minsheng-file-upload-submit"><i class="fa fa-upload"></i> 上传</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 上传进展资料模态框 -->
     <div class="modal fade" id="progress-upload-modal" tabindex="-1" aria-labelledby="progress-upload-title" aria-hidden="true">
         <div class="modal-dialog">
@@ -509,6 +642,13 @@
                 <div class="modal-body">
                     <form id="progress-edit-form">
                         <input type="hidden" name="id" id="progress-edit-id">
+                        <div class="mb-3">
+                            <label class="form-label">监督部门</label>
+                            <div class="dept-autocomplete-wrapper">
+                                <input type="text" class="form-control" name="department" id="progress-edit-dept" placeholder="选择或输入监督部门" autocomplete="off">
+                                <div id="progress-edit-dept-dropdown" class="dept-autocomplete-dropdown d-none"></div>
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label">上传日期</label>
                             <input type="date" class="form-control form-control-date" name="uploadDate" id="progress-edit-date">
@@ -717,6 +857,8 @@
         let isAdmin = false;
         let currentUserRole = '';
         let currentUsername = '';
+        // 上传民生实事文件资料：监督部门下拉选项
+        let minshengUploadDeptOptions = [];
 
         function debounce(fn, ms) {
             let t;
@@ -738,6 +880,8 @@
                 DOM.loginBtn.style.display = '';
                 DOM.logoutBtn.style.display = 'none';
                 DOM.operationArea.style.display = 'none';
+                var mfUploadBtn = document.getElementById('minsheng-file-upload-btn');
+                if (mfUploadBtn) mfUploadBtn.style.display = 'none';
                 if (hadToken) showToast('您已被强制下线，请重新登录');
                 throw new Error('UNAUTHORIZED');
             }
@@ -853,7 +997,60 @@ async function refreshView() {
     await loadDepartmentsFromServer();
     var filteredData = applyFilters();
     renderDeptGroups(filteredData);
+    renderMinshengFileList();
     if (typeof initChart === 'function') initChart(filteredData);
+}
+
+// ========== 民生实事文件资料列表（参照批示督办） ==========
+function formatDateCh(s) {
+    if (!s) return '-';
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) return m[1] + '年' + parseInt(m[2], 10) + '月' + parseInt(m[3], 10) + '日';
+    var m2 = s.match(/^(\d{4})-(\d{1,2})/);
+    if (m2) return m2[1] + '年' + parseInt(m2[2], 10) + '月';
+    return s;
+}
+function renderMinshengFileList() {
+    var listEl = document.getElementById('minsheng-file-list');
+    var emptyEl = document.getElementById('minsheng-file-empty');
+    if (!listEl) return;
+    var sorted = (progressData || []).slice().sort(function (a, b) {
+        var pa = a.pinned ? 1 : 0, pb = b.pinned ? 1 : 0;
+        if (pa !== pb) return pb - pa;
+        var da = a.uploadDate || (a.createdAt ? a.createdAt.slice(0, 10) : '');
+        var db = b.uploadDate || (b.createdAt ? b.createdAt.slice(0, 10) : '');
+        return (db || '').localeCompare(da || '');
+    });
+    if (sorted.length === 0) {
+        listEl.innerHTML = '';
+        if (emptyEl) emptyEl.style.display = 'block';
+        return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+    var html = '';
+    sorted.forEach(function (p) {
+        var ext = (p.fileType || 'pdf').toUpperCase();
+        var rawDate = p.uploadDate || (p.createdAt ? p.createdAt.slice(0, 10) : '');
+        var dateStr = formatDateCh(rawDate || '');
+        var fileName = (p.title || p.originalName || '未命名');
+        var dept = (p.department || '-');
+        html += '<tr><td class="progress-date-col">' + dateStr + '</td>';
+        var badgeCls = (ext === 'PDF') ? 'badge-file-pdf' : 'badge-file-docx';
+        html += '<td class="progress-name-col"><i class="fa fa-file-' + (p.fileType === 'pdf' ? 'pdf' : 'word') + '-o text-danger me-1"></i><a href="javascript:void(0)" class="minsheng-file-preview-link text-decoration-none" data-id="' + p.id + '" data-title="' + (fileName + '').replace(/"/g, '&quot;') + '">' + fileName + '</a> <span class="badge ' + badgeCls + '">' + ext + '</span></td>';
+        html += '<td class="progress-dept-col">' + dept + '</td>';
+        var isPinned = !!p.pinned;
+        html += '<td class="progress-op-col"><div class="btn-group btn-group-sm">';
+        if (isAdmin) {
+            html += '<button class="btn ' + (isPinned ? 'btn-warning' : 'btn-outline-warning') + ' btn-sm progress-pin-btn" data-id="' + p.id + '" data-pinned="' + isPinned + '"><i class="fa fa-thumb-tack"></i> ' + (isPinned ? '取消置顶' : '置顶') + '</button>';
+        }
+        if (isAdmin) {
+            html += '<button class="btn btn-outline-secondary btn-sm progress-edit-btn" data-id="' + p.id + '"><i class="fa fa-edit"></i> 编辑</button>';
+            html += '<button class="btn btn-outline-danger btn-sm progress-del-btn" data-id="' + p.id + '"><i class="fa fa-trash"></i> 删除</button>';
+        }
+        html += '<a href="/api/minsheng/progress/download/' + p.id + '" class="btn btn-outline-info btn-sm" target="_blank"><i class="fa fa-download"></i> 下载</a>';
+        html += '</div></td></tr>';
+    });
+    listEl.innerHTML = html;
 }
 
 // ========== 改造登录逻辑 ==========
@@ -885,6 +1082,8 @@ DOM.doLoginBtn.addEventListener('click', async () => {
             DOM.loginBtn.style.display = 'none';
             DOM.logoutBtn.style.display = '';
             DOM.operationArea.style.display = '';
+            var mfUploadBtn = document.getElementById('minsheng-file-upload-btn');
+            if (mfUploadBtn) mfUploadBtn.style.display = '';
             DOM.adminMgmtBtn.style.display = currentUserRole === 'super_admin' ? '' : 'none';
             bootstrap.Modal.getInstance(document.getElementById('login-modal')).hide();
             
@@ -894,6 +1093,7 @@ DOM.doLoginBtn.addEventListener('click', async () => {
             await loadDepartmentsFromServer();
             var filteredData = applyFilters();
             renderDeptGroups(filteredData);
+            renderMinshengFileList();
             initChart(filteredData);
             showToast('登录成功！');
         } else {
@@ -971,6 +1171,7 @@ document.getElementById('progress-upload-submit').addEventListener('click', asyn
             progressData = await loadProgressFromServer();
             var filteredData = applyFilters();
             renderDeptGroups(filteredData);
+            if (typeof renderMinshengFileList === 'function') renderMinshengFileList();
             showToast('上传成功');
         } else showToast(result.msg || '上传失败');
     } catch (e) { showToast('上传失败，请检查后端服务'); }
@@ -980,6 +1181,7 @@ document.getElementById('progress-upload-submit').addEventListener('click', asyn
 document.getElementById('progress-edit-submit').addEventListener('click', async function () {
     var id = document.getElementById('progress-edit-id').value;
     var title = document.getElementById('progress-edit-title-input').value.trim();
+    var department = (document.getElementById('progress-edit-dept') || {}).value.trim();
     var uploadDate = document.getElementById('progress-edit-date').value.trim();
     var fileInput = document.getElementById('progress-edit-file');
     if (!id || !title) { showToast('标题不能为空'); return; }
@@ -987,6 +1189,7 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
         if (fileInput.files && fileInput.files[0]) {
             var fd = new FormData();
             fd.append('title', title);
+            fd.append('department', department);
             fd.append('uploadDate', uploadDate);
             fd.append('file', fileInput.files[0]);
             var res = await apiFetch('/api/minsheng/progress/' + id + '/replace-file', { method: 'POST', body: fd });
@@ -997,13 +1200,14 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
                 progressData = await loadProgressFromServer();
                 var filteredData = applyFilters();
                 renderDeptGroups(filteredData);
+                if (typeof renderMinshengFileList === 'function') renderMinshengFileList();
                 showToast('修改并重新上传成功');
             } else showToast(result.msg || '修改失败');
         } else {
             var res = await apiFetch('/api/minsheng/progress/' + id, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: title, uploadDate: uploadDate || undefined })
+                body: JSON.stringify({ title: title, department: department || undefined, uploadDate: uploadDate || undefined })
             });
             var result = await res.json();
             if (result.code === 0) {
@@ -1011,6 +1215,7 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
                 progressData = await loadProgressFromServer();
                 var filteredData = applyFilters();
                 renderDeptGroups(filteredData);
+                if (typeof renderMinshengFileList === 'function') renderMinshengFileList();
                 showToast('修改成功');
             } else showToast(result.msg || '修改失败');
         }
@@ -1145,11 +1350,6 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
             let fullHtml = '';
             depts.forEach(function (dept) {
                 const projects = deptMap[dept];
-                var progressList = progressData.filter(function (p) { return p.department === dept; }).sort(function (a, b) {
-                    var da = a.uploadDate || (a.createdAt ? a.createdAt.slice(0, 10) : '');
-                    var db = b.uploadDate || (b.createdAt ? b.createdAt.slice(0, 10) : '');
-                    return (db || '').localeCompare(da || '');
-                });
                 let projectsRows = '';
                 projects.forEach(function (item) {
                     const cbTd = isAdmin ? '<td><input type="checkbox" class="row-checkbox" data-id="' + item.id + '"></td>' : '';
@@ -1157,39 +1357,12 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
                     projectsRows += '<tr>' + cbTd + '<td>' + item.year + '</td><td>' + item.name + '</td><td>' + item.members + '</td><td>' + item.supervise + '</td><td>' + item.status + '</td>' + opTd + '</tr>';
                 });
                 const opHeader = isAdmin ? '<th style="min-width: 120px;">操作</th>' : '';
-                function formatDateChinese(s) {
-                    if (!s) return '-';
-                    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-                    if (m) return m[1] + '年' + parseInt(m[2], 10) + '月' + parseInt(m[3], 10) + '日';
-                    var m2 = s.match(/^(\d{4})-(\d{1,2})/);
-                    if (m2) return m2[1] + '年' + parseInt(m2[2], 10) + '月';
-                    return s;
-                }
-                let progressHtml = '<table class="table table-sm progress-table mb-0"><thead><tr><th class="progress-date-col">日期</th><th class="progress-name-col">文件名</th><th class="progress-op-col">操作</th></tr></thead><tbody>';
-                progressList.forEach(function (p) {
-                    const ext = (p.fileType || 'pdf').toUpperCase();
-                    var rawDate = p.uploadDate || (p.createdAt ? p.createdAt.slice(0, 10) : '');
-                    var dateStr = formatDateChinese(rawDate || '');
-                    var fileName = (p.title || p.originalName || '未命名');
-                    progressHtml += '<tr class="progress-item">';
-                    progressHtml += '<td class="progress-date-col">' + dateStr + '</td>';
-                    progressHtml += '<td class="progress-name-col"><i class="fa fa-file-' + (p.fileType === 'pdf' ? 'pdf' : 'word') + '-o text-danger me-1"></i>' + fileName + ' <span class="badge bg-secondary">' + ext + '</span></td>';
-                    progressHtml += '<td class="progress-op-col"><div class="btn-group btn-group-sm">';
-                    progressHtml += '<a href="minsheng-progress-detail.html?id=' + p.id + '" target="_blank" class="btn btn-outline-primary btn-sm"><i class="fa fa-eye"></i> 预览</a>';
-                    if (isAdmin) {
-                        progressHtml += '<button class="btn btn-outline-secondary btn-sm progress-edit-btn" data-id="' + p.id + '"><i class="fa fa-edit"></i> 修改</button>';
-                        progressHtml += '<button class="btn btn-outline-danger btn-sm progress-del-btn" data-id="' + p.id + '"><i class="fa fa-trash"></i> 删除</button>';
-                    }
-                    progressHtml += '<a href="/api/minsheng/progress/download/' + p.id + '" class="btn btn-outline-info btn-sm" target="_blank"><i class="fa fa-download"></i> 下载</a>';
-                    progressHtml += '</div></td></tr>';
-                });
-                progressHtml += '</tbody></table>';
-                const uploadBtn = isAdmin ? '<button class="btn btn-sm btn-primary progress-upload-btn" data-dept="' + dept + '"><i class="fa fa-upload"></i> 上传工作进展资料</button>' : '';
                 var deptInfo = departmentsData.find(function (x) { return x.name === dept; });
-                var deptLabel = deptInfo && deptInfo.id != null ? (deptInfo.id + '. ' + dept) : dept;
-                fullHtml += '<div class="dept-card card mb-4"><div class="card-header dept-card-header"><h6 class="mb-0">' + deptLabel + '</h6></div><div class="card-body p-0">';
-                fullHtml += '<div class="table-responsive"><table class="table table-hover table-striped mb-0"><thead class="table-header-blue"><tr>' + (isAdmin ? '<th style="width: 40px;"></th>' : '') + '<th style="width: 80px;">年度</th><th style="min-width: 120px;">项目名称</th><th style="min-width: 150px;">小组成员名单</th><th style="min-width: 180px;">重点监督内容</th><th style="width: 90px;">完成情况</th>' + opHeader + '</tr></thead><tbody>' + projectsRows + '</tbody></table></div>';
-                fullHtml += '<div class="p-3 border-top"><h6 class="mb-2">工作进展资料</h6><div class="progress-list mb-2">' + (progressList.length ? progressHtml : (isAdmin ? '' : '<div class="text-muted small">暂无进展资料</div>')) + '</div>' + uploadBtn + '</div></div></div>';
+                var titleHtml = deptInfo && deptInfo.id != null
+                    ? '<span class="dept-seq">' + String(deptInfo.id).padStart(2, '0') + '</span><span class="dept-name">' + dept + '</span>'
+                    : '<span class="dept-name">' + dept + '</span>';
+                fullHtml += '<div class="dept-card card mb-4"><div class="card-header dept-card-header">' + titleHtml + '</div><div class="card-body p-0">';
+                fullHtml += '<div class="table-responsive"><table class="table table-hover table-striped mb-0"><thead class="table-header-blue"><tr>' + (isAdmin ? '<th style="width: 40px;"></th>' : '') + '<th style="width: 80px;">年度</th><th style="min-width: 120px;">项目名称</th><th style="min-width: 150px;">小组成员名单</th><th style="min-width: 180px;">重点监督内容</th><th style="width: 90px;">完成情况</th>' + opHeader + '</tr></thead><tbody>' + projectsRows + '</tbody></table></div></div></div>';
             });
             DOM.deptGroups.innerHTML = fullHtml;
         }
@@ -1245,8 +1418,7 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
                     gradient.addColorStop(1, color.border);
                     return gradient;
                 }),
-                borderColor: deptNames.map((dept, index) => getMorandiColor(dept, index).border),
-                borderWidth: 2,
+                borderWidth: 0,
                 borderRadius: 8,
                 borderSkipped: false,
                 hoverOffset: 10,
@@ -1266,6 +1438,31 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
 
             if (chartInstance) chartInstance.destroy();
             window.Chart.register(window.ChartDataLabels);
+
+            var barShadowPlugin = {
+                id: 'barShadow',
+                beforeDatasetsDraw: function (chart) {
+                    if (chart.config.type !== 'bar') return;
+                    var ctx = chart.ctx;
+                    chart.data.datasets.forEach(function (dataset, i) {
+                        var meta = chart.getDatasetMeta(i);
+                        if (!meta.data || meta.hidden) return;
+                        meta.data.forEach(function (bar) {
+                            var x = bar.x, base = bar.base, w = bar.width;
+                            var left = x - w / 2, top = bar.y, h = base - top;
+                            ctx.save();
+                            ctx.shadowColor = 'rgba(0,0,0,0.22)';
+                            ctx.shadowBlur = 12;
+                            ctx.shadowOffsetX = 4;
+                            ctx.shadowOffsetY = 5;
+                            ctx.fillStyle = 'rgba(0,0,0,0.03)';
+                            ctx.fillRect(left, top, w, h);
+                            ctx.restore();
+                        });
+                    });
+                }
+            };
+            window.Chart.register(barShadowPlugin);
 
             chartInstance = new window.Chart(ctx, {
                 type: 'bar',
@@ -1324,6 +1521,65 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
             });
         }
 
+        // 上传民生实事文件资料：自定义部门下拉（替代 datalist）
+        function getMinshengDeptOptions() {
+            var seen = {};
+            var list = [];
+            (departmentsData || []).forEach(function (d) {
+                var name = (d.name || '').trim();
+                if (name && !seen[name]) { seen[name] = true; list.push(name); }
+            });
+            return list;
+        }
+
+        function renderDeptDropdownFor(inputEl, dropdownEl, options, keyword) {
+            if (!inputEl || !dropdownEl || !options) return;
+            var kw = (keyword || '').trim().toLowerCase();
+            var items = options.filter(function (name) {
+                var lower = (name || '').toLowerCase();
+                return !kw || lower.indexOf(kw) !== -1;
+            });
+            if (!items.length) {
+                dropdownEl.classList.add('d-none');
+                dropdownEl.innerHTML = '';
+                return;
+            }
+            dropdownEl.innerHTML = items.map(function (name) {
+                return '<div class="dept-autocomplete-item" data-value="' + name + '">' + name + '</div>';
+            }).join('');
+            dropdownEl.classList.remove('d-none');
+        }
+
+        function setupDeptAutocompleteFor(inputEl, dropdownEl, getOptions) {
+            if (!inputEl || !dropdownEl || !getOptions) return;
+            inputEl.addEventListener('input', function () { renderDeptDropdownFor(inputEl, dropdownEl, getOptions(), inputEl.value); });
+            inputEl.addEventListener('focus', function () { renderDeptDropdownFor(inputEl, dropdownEl, getOptions(), inputEl.value); });
+            dropdownEl.addEventListener('mousedown', function (e) {
+                var item = e.target.closest('.dept-autocomplete-item');
+                if (!item) return;
+                inputEl.value = item.getAttribute('data-value') || '';
+                dropdownEl.classList.add('d-none');
+                e.preventDefault();
+            });
+            document.addEventListener('click', function (e) {
+                if (e.target === inputEl || dropdownEl.contains(e.target)) return;
+                dropdownEl.classList.add('d-none');
+            });
+        }
+
+        function setupMinshengDeptAutocomplete() {
+            setupDeptAutocompleteFor(
+                document.getElementById('minsheng-file-upload-dept'),
+                document.getElementById('minsheng-dept-dropdown'),
+                function () { return minshengUploadDeptOptions; }
+            );
+            setupDeptAutocompleteFor(
+                document.getElementById('progress-edit-dept'),
+                document.getElementById('progress-edit-dept-dropdown'),
+                getMinshengDeptOptions
+            );
+        }
+
         // 事件绑定
         function bindEvents() {
             // 数据概览：点击标题折叠/展开
@@ -1335,6 +1591,139 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
                     var hidden = overviewBody.style.display === 'none';
                     overviewBody.style.display = hidden ? '' : 'none';
                     overviewChevron.className = hidden ? 'fa fa-chevron-down overview-chevron me-1' : 'fa fa-chevron-right overview-chevron me-1';
+                });
+            }
+            // 民生实事文件资料：点击标题折叠/展开
+            var mfTitleToggle = document.querySelector('.minsheng-file-title-toggle');
+            var mfCardBody = document.getElementById('minsheng-file-card-body');
+            var mfChevron = document.querySelector('.minsheng-file-chevron');
+            if (mfTitleToggle && mfCardBody && mfChevron) {
+                mfTitleToggle.addEventListener('click', function () {
+                    var hidden = mfCardBody.style.display === 'none';
+                    mfCardBody.style.display = hidden ? '' : 'none';
+                    mfChevron.className = hidden ? 'fa fa-chevron-down minsheng-file-chevron me-1' : 'fa fa-chevron-right minsheng-file-chevron me-1';
+                });
+            }
+            // 民生实事文件资料：上传按钮
+            var mfUploadBtn = document.getElementById('minsheng-file-upload-btn');
+            if (mfUploadBtn) {
+                mfUploadBtn.addEventListener('click', async function () {
+                    await loadDepartmentsFromServer();
+                    // 构建下拉选项（去重）
+                    const seen = {};
+                    minshengUploadDeptOptions = [];
+                    (departmentsData || []).forEach(function (d) {
+                        const name = (d.name || '').trim();
+                        if (name && !seen[name]) {
+                            seen[name] = true;
+                            minshengUploadDeptOptions.push(name);
+                        }
+                    });
+                    document.getElementById('minsheng-dept-dropdown').classList.add('d-none');
+                    document.getElementById('minsheng-file-upload-form').reset();
+                    var today = new Date();
+                    document.getElementById('minsheng-file-upload-date').value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+                    new bootstrap.Modal(document.getElementById('minsheng-file-upload-modal')).show();
+                });
+            }
+            // 民生实事文件资料：上传提交
+            var mfUploadSubmit = document.getElementById('minsheng-file-upload-submit');
+            if (mfUploadSubmit) {
+                mfUploadSubmit.addEventListener('click', async function () {
+                    var dept = (document.getElementById('minsheng-file-upload-dept') || {}).value.trim();
+                    var title = document.querySelector('#minsheng-file-upload-form [name="title"]').value.trim();
+                    var uploadDate = document.getElementById('minsheng-file-upload-date').value.trim();
+                    var fileInput = document.getElementById('minsheng-file-upload-file');
+                    if (!dept) { showToast('请选择监督部门'); return; }
+                    if (!fileInput || !fileInput.files || !fileInput.files[0]) { showToast('请选择文件'); return; }
+                    if (!uploadDate) {
+                        var d = new Date();
+                        uploadDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                    }
+                    var fd = new FormData();
+                    fd.append('department', dept);
+                    fd.append('title', title);
+                    fd.append('uploadDate', uploadDate);
+                    fd.append('file', fileInput.files[0]);
+                    try {
+                        var res = await apiFetch('/api/minsheng/progress/upload', { method: 'POST', body: fd });
+                        var result = await res.json();
+                        if (result.code === 0) {
+                            bootstrap.Modal.getInstance(document.getElementById('minsheng-file-upload-modal')).hide();
+                            progressData = await loadProgressFromServer();
+                            var filteredData = applyFilters();
+                            renderDeptGroups(filteredData);
+                            renderMinshengFileList();
+                            showToast('上传成功');
+                        } else showToast(result.msg || '上传失败');
+                    } catch (e) { showToast('上传失败'); }
+                });
+            }
+            // 民生实事文件资料区域：置顶/编辑/删除（事件委托）
+            var mfArea = document.getElementById('minsheng-file-area');
+            if (mfArea) {
+                mfArea.addEventListener('click', async function (e) {
+                    var previewLink = e.target.closest('.minsheng-file-preview-link');
+                    if (previewLink) {
+                        var fid = previewLink.dataset.id;
+                        var title = previewLink.dataset.title || '文件预览';
+                        if (fid) {
+                            document.getElementById('minsheng-file-preview-title').textContent = title;
+                            document.getElementById('minsheng-file-preview-iframe').src = 'minsheng-progress-detail.html?id=' + fid + '&embed=1';
+                            new bootstrap.Modal(document.getElementById('minsheng-file-preview-modal')).show();
+                        }
+                        return;
+                    }
+                    var pinBtn = e.target.closest('.progress-pin-btn');
+                    if (pinBtn) {
+                        var pid = parseInt(pinBtn.dataset.id, 10);
+                        var pinned = pinBtn.dataset.pinned === 'true';
+                        try {
+                            var res = await apiFetch('/api/minsheng/progress/' + pid, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ pinned: !pinned })
+                            });
+                            var result = await res.json();
+                            if (result.code === 0) {
+                                progressData = await loadProgressFromServer();
+                                renderMinshengFileList();
+                                showToast(pinned ? '已取消置顶' : '已置顶');
+                            } else showToast(result.msg || '操作失败');
+                        } catch (err) { showToast('操作失败'); }
+                        return;
+                    }
+                    var editBtn = e.target.closest('.progress-edit-btn');
+                    var delBtn = e.target.closest('.progress-del-btn');
+                    if (editBtn) {
+                        var pid = parseInt(editBtn.dataset.id, 10);
+                        var prog = progressData.find(function (x) { return x.id === pid; });
+                        if (prog) {
+                            document.getElementById('progress-edit-id').value = prog.id;
+                            document.getElementById('progress-edit-dept').value = prog.department || '';
+                            document.getElementById('progress-edit-dept-dropdown').classList.add('d-none');
+                            document.getElementById('progress-edit-date').value = prog.uploadDate || (prog.createdAt ? prog.createdAt.slice(0, 10) : '');
+                            document.getElementById('progress-edit-title-input').value = prog.title || prog.originalName || '';
+                            new bootstrap.Modal(document.getElementById('progress-edit-modal')).show();
+                        }
+                        return;
+                    }
+                    if (delBtn) {
+                        var pid = parseInt(delBtn.dataset.id, 10);
+                        if (!confirm('确定要删除该进展资料吗？')) return;
+                        try {
+                            var res = await apiFetch('/api/minsheng/progress/' + pid, { method: 'DELETE' });
+                            var result = await res.json();
+                            if (result.code === 0) {
+                                progressData = await loadProgressFromServer();
+                                var filteredData = applyFilters();
+                                renderDeptGroups(filteredData);
+                                renderMinshengFileList();
+                                showToast('已删除');
+                            } else showToast(result.msg);
+                        } catch (err) { showToast('删除失败'); }
+                        return;
+                    }
                 });
             }
             // 登录按钮
@@ -1362,6 +1751,13 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
                 DOM.loginBtn.style.display = '';
                 DOM.logoutBtn.style.display = 'none';
                 DOM.operationArea.style.display = 'none';
+                var mfUploadBtn = document.getElementById('minsheng-file-upload-btn');
+                if (mfUploadBtn) mfUploadBtn.style.display = 'none';
+                var batchBar = document.getElementById('batch-bar');
+                if (batchBar) batchBar.style.display = 'none';
+                const filteredData = applyFilters();
+                renderDeptGroups(filteredData);
+                initChart(filteredData);
                 showToast('已退出登录！');
             });
 
@@ -1438,18 +1834,6 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
                 }
 
                 // 上下移动
-                // 上传进展资料
-                var uploadBtn = e.target.closest('.progress-upload-btn');
-                if (uploadBtn) {
-                    document.getElementById('progress-upload-department').value = uploadBtn.dataset.dept;
-                    document.getElementById('progress-upload-form').reset();
-                    document.getElementById('progress-upload-department').value = uploadBtn.dataset.dept;
-                    document.getElementById('progress-upload-file').value = '';
-                    var today = new Date();
-                    document.getElementById('progress-upload-date').value = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-                    new bootstrap.Modal(document.getElementById('progress-upload-modal')).show();
-                    return;
-                }
                 // 编辑进展资料
                 var editProgressBtn = e.target.closest('.progress-edit-btn');
                 if (editProgressBtn) {
@@ -1457,6 +1841,8 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
                     var prog = progressData.find(function (x) { return x.id === pid; });
                     if (prog) {
                         document.getElementById('progress-edit-id').value = prog.id;
+                        document.getElementById('progress-edit-dept').value = prog.department || '';
+                        document.getElementById('progress-edit-dept-dropdown').classList.add('d-none');
                         document.getElementById('progress-edit-date').value = prog.uploadDate || (prog.createdAt ? prog.createdAt.slice(0, 10) : '');
                         document.getElementById('progress-edit-title-input').value = prog.title || prog.originalName || '';
                         new bootstrap.Modal(document.getElementById('progress-edit-modal')).show();
@@ -1894,6 +2280,11 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
                 DOM.loginBtn.style.display = '';
                 DOM.logoutBtn.style.display = 'none';
                 DOM.operationArea.style.display = 'none';
+                var mfUploadBtn = document.getElementById('minsheng-file-upload-btn');
+                if (mfUploadBtn) mfUploadBtn.style.display = 'none';
+            } else {
+                var mfUploadBtn = document.getElementById('minsheng-file-upload-btn');
+                if (mfUploadBtn) mfUploadBtn.style.display = '';
             }
             // 加载数据（项目 + 进展资料 + 部门）
             projectData = await loadDataFromServer('all') || [];
@@ -1902,7 +2293,9 @@ document.getElementById('progress-edit-submit').addEventListener('click', async 
             updateYearSelectors();
             const filteredData = applyFilters();
             renderDeptGroups(filteredData);
+            renderMinshengFileList();
             initChart(filteredData);
+            setupMinshengDeptAutocomplete();
             bindEvents();
         }
 
